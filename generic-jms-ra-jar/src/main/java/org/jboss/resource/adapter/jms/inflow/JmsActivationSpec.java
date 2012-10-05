@@ -88,8 +88,8 @@ public class JmsActivationSpec implements ActivationSpec
    /** Is the session transacted */
    private boolean sessionTransacted = true;
 
-   //Default to 5 attempts
-   private int reconnectAttempts = 5;
+   //Default to -1 attempts (i.e. infinite)
+   private int reconnectAttempts = -1;
    
    private boolean redeliverUnspecified = true;
    

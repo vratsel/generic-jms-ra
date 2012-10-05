@@ -266,7 +266,7 @@ public class JmsActivation implements ExceptionListener
       }
       try
       {
-         while (deliveryActive.get() && reconnectCount < spec.getReconnectAttempts())
+         while (deliveryActive.get() && (reconnectCount < spec.getReconnectAttempts() || spec.getReconnectAttempts() == -1))
          {
             teardown();
 
