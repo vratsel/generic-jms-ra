@@ -13,7 +13,7 @@ Since this is a <em>generic</em> JMS JCA RA, the user must supply it with the pr
 1. Create a module with the proper integration classes 
 2. Modify the manifest.mf of the RAR to use the aforementioned module
 
-For example, to integrate with JBoss Messaging running in JBoss AS 5 create a module.xml like this (jar files copied from <JBOSS_5_HOME>/client):
+For example, to integrate with JBoss Messaging running in JBoss AS 5 create a module.xml like this (jar files copied from &lt;JBOSS_5_HOME&gt;/client):
 
 	<module xmlns="urn:jboss:module:1.1" name="org.jboss.jboss-5-client">
 	    <resources>
@@ -38,7 +38,7 @@ For example, to integrate with JBoss Messaging running in JBoss AS 5 create a mo
 	    </dependencies>
 	</module>
 
-Of course, the module.xml and all the related jar files would need to be placed in <JBOSS_7_HOME>/modules/org/jboss/jboss-5-client/main.
+Of course, the module.xml and all the related jar files would need to be placed in &lt;JBOSS_7_HOME&gt;/modules/org/jboss/jboss-5-client/main.
 
 The next step is to modify the generic JMS JCA RA to use this module so it has access to all the proper integration classes when it interacts with the remote JBoss Messaging broker.  To do this, simply add this line to the generic-jms-rar.rar/META-INF/manifest.mf:
 
