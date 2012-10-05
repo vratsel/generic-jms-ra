@@ -155,31 +155,31 @@ When deploying an MDB which depends on a non-default RA it is customary to modif
 ### Activation Configuration Properties
 
 #### Most commonly used activation configuration properties
-destination - the JNDI name of JMS destination from which the MDB will consume messages
-destinationType - the type of JMS destination from which to consume messages (e.g. javax.jms.Queue or javax.jms.Topic)
-jndiParameters - the JNDI parameters to use to perform the lookup of the destination and the connectionFactory
-connectionFactory - the JNDI name of connection factory which the RA will use to consume the messages; this is normally a connection factory which supports XA
+* destination - the JNDI name of JMS destination from which the MDB will consume messages
+* destinationType - the type of JMS destination from which to consume messages (e.g. javax.jms.Queue or javax.jms.Topic)
+* jndiParameters - the JNDI parameters to use to perform the lookup of the destination and the connectionFactory
+* connectionFactory - the JNDI name of connection factory which the RA will use to consume the messages; this is normally a connection factory which supports XA
 
 #### Less commonly used activation configuration properties
-messageSelector
-acknowledgeMode
-subscriptionDurability
-clientId
-subscriptionName
-reconnectInterval - value is measured in seconds; default is -1 (i.e. infinite retries)
-reconnectAttempts - default is 5
-user
-pass
-minSession - default is 1
-maxSession - default is 15
+* messageSelector
+* acknowledgeMode
+* subscriptionDurability
+* clientId
+* subscriptionName
+* reconnectInterval - value is measured in seconds; default is -1 (i.e. infinite retries)
+* reconnectAttempts - default is 5
+* user
+* pass
+* minSession - default is 1
+* maxSession - default is 15
 
 #### Rarely used activation configuration properties
-maxMessages - default is 1
-sessionTransacted - default is true
-redeliverUnspecified - default is true
-transactionTimeout
-isSameRMOverrideValue
-forceClearOnShutdown - default is false
-forceClearOnShutdownInterval - value is measured in milliseconds; default is 1000
-forceClearAttempts - default is 0
-forceTransacted - default is false
+* maxMessages - default is 1
+* sessionTransacted - default is true
+* redeliverUnspecified - default is true
+* transactionTimeout
+* isSameRMOverrideValue
+* forceClearOnShutdown - default is false
+* forceClearOnShutdownInterval - value is measured in milliseconds; default is 1000
+* forceClearAttempts - default is 0
+* forceTransacted - default is false
