@@ -155,10 +155,10 @@ When deploying an MDB which depends on a non-default RA it is customary to modif
 ### Activation Configuration Properties
 
 #### Most commonly used activation configuration properties
-* <strong>destination</strong> - the JNDI name of JMS destination from which the MDB will consume messages
+* <strong>destination</strong> - the JNDI name of JMS destination from which the MDB will consume messages; this is required
 * <strong>destinationType</strong> - the type of JMS destination from which to consume messages (e.g. javax.jms.Queue or javax.jms.Topic)
-* <strong>jndiParameters</strong> - the JNDI parameters to use to perform the lookup of the destination and the connectionFactory
-* <strong>connectionFactory</strong> - the JNDI name of connection factory which the RA will use to consume the messages; this is normally a connection factory which supports XA
+* <strong>jndiParameters</strong> - the JNDI parameters used to perform the lookup of the destination and the connectionFactory; each parameter consists of a "name=value" pair; parameters are separated with a semi-colon (';'); if no parameters are specified then an empty InitialContext will be used (i.e. the lookup will be local)
+* <strong>connectionFactory</strong> - the JNDI name of connection factory which the RA will use to consume the messages; this is normally a connection factory which supports XA; this is required
 
 #### Less commonly used activation configuration properties
 * <strong>messageSelector</strong>
