@@ -453,7 +453,12 @@ public class JmsActivationSpec implements ActivationSpec
 
       if (destination == null || destination.trim().equals(""))
       {
-         throw new InvalidPropertyException("Destination is mandatory");
+         throw new InvalidPropertyException("destination is mandatory");
+      }
+
+      if (connectionFactory == null || connectionFactory.trim().equals(""))
+      {
+         throw new InvalidPropertyException("connectionFactory is mandatory");
       }
    }
 
