@@ -46,6 +46,8 @@ The next step is to modify the generic JMS JCA RA to use this module so it has a
 
 ### Example deployment descriptor
 
+To create an outbound connection factory, use a deployment descriptor like this in your standalone*.xml.
+
      <subsystem xmlns="urn:jboss:domain:resource-adapters:1.0">
          <resource-adapters>
              <resource-adapter>
@@ -54,7 +56,7 @@ The next step is to modify the generic JMS JCA RA to use this module so it has a
                  </archive>
                  <transaction-support>XATransaction</transaction-support>
                  <connection-definitions>
-                     <connection-definition class-name="org.jboss.resource.adapter.jms.JmsManagedConnectionFactory" jndi-name="java:/GenericJmsXA" enabled="true" use-java-context="true" pool-name="Session" use-ccm="true">
+                     <connection-definition class-name="org.jboss.resource.adapter.jms.JmsManagedConnectionFactory" jndi-name="java:/GenericJmsXA" enabled="true" use-java-context="true" pool-name="GenericJmsXA" use-ccm="true">
                          <config-property name="JndiParameters">
                              java.naming.factory.initial=org.jnp.interfaces.NamingContextFactory;java.naming.provider.url=JBM_HOST:1099;java.naming.factory.url.pkgs=org.jboss.naming:org.jnp.interfaces
                          </config-property>
@@ -79,9 +81,15 @@ The next step is to modify the generic JMS JCA RA to use this module so it has a
          </resource-adapters>
      </subsystem>
 
+This particular configuration binds a JMS connection factory to "java:/GenericJmsXA".  Under the covers it looks up the "XAConnectionFactory" via JNDI from JBM_HOST.
+
 ## Example MDB
 
-This MDB will connect to JBM_HOST using the "XAConnectionFactory" (via JNDI) and consume messages from the "queue/source" destination.  Then it will use the "java:/GenericJmsXA" connection factory (defined above) to send a message to the "target" destination via the "XAConnectionFactory" hosted on JBM_HOST.
+This MDB will connect to JBM_HOST using the "XAConnectionFactory" and consume messages from the "queue/source" destination.  It's important to note that the RA will use the "jndiParameters" activation configuration property to lookup the "connectionFactory" and the "destination."
+
+Once a message is received the MDB will use the "java:/GenericJmsXA" connection factory (defined above) to send a message to the "target" destination hosted on JBM_HOST.  Notice here that the GenericJmsXA connection factory is looked up via JNDI, but the "target" destination is not looked up via JNDI but rather instantiated with javax.jms.Session.createQueue(String) where the Sting parameter is the actual name of the destination (i.e. not necessarily where it is bound in JNDI).  This is done because we want to avoid a full JNDI look-up of the destination on the remote server, and because there is currently no way to make a local JNDI look-up go to a remote server (a la the ExternalContext MBean from JBoss AS 4, 5, and 6).  The reason it is typically good to avoid a full JNDI lookup of the destination on the remote server is because it saves the developer from having to specify the same JNDI lookup parameters both in the code and the activation configuration.
+
+The consumption and production will be done atomically because the underlying connection factories used to consume and produce the messages support XA and also because the way the MDB is coded to rollback the transaction when production fails for any reason.
 
 	import javax.ejb.ActivationConfigProperty;
 	import javax.ejb.MessageDriven;
@@ -106,25 +114,72 @@ This MDB will connect to JBM_HOST using the "XAConnectionFactory" (via JNDI) and
 	@ResourceAdapter("generic-jms-rar.rar")
 	public class ExampleMDB implements MessageListener
 	{
-	
+
+	   @Resource
+	   private MessageDrivenContext context;
+
 	   public void onMessage(final Message message)
 	   {
+	      Connection connection = null;
+
 	      try
 	      {
 	         Context context = new InitialContext();
 	         ConnectionFactory cf = (ConnectionFactory) context.lookup("java:/GenericJmsXA");
 	         context.close();
-	         Connection connection = cf.createConnection();
+	         connection = cf.createConnection();
 	         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	         Destination destination = session.createQueue("target");
 	         MessageProducer producer = session.createProducer(destination);
 	         Message msg = session.createTextMessage("example text");
 	         producer.send(msg);
-	         connection.close();
 	      }
 	      catch (Exception e)
 	      {
-	         e.printStackTrace();
+	         context.setRollbackOnly();
+	      }
+	      finally
+	      {
+	         if (connection != null)
+	         {
+	            connection.close();
+	         }
 	      }
 	   }
-	}	
+	}
+
+When deploying an MDB which depends on a non-default RA it is customary to modify the MDB's deployment so that it is not deployed until the RA it needs has been deployed.  To do this in JBoss AS7 simply add this line to the META-INF/manifest.mf of your deployment:
+
+	Dependencies: deployment.generic-jms-rar.rar
+
+### Activation Configuration Properties
+
+#### Most commonly used activation configuration properties
+destination - the JNDI name of JMS destination from which the MDB will consume messages
+destinationType - the type of JMS destination from which to consume messages (e.g. javax.jms.Queue or javax.jms.Topic)
+jndiParameters - the JNDI parameters to use to perform the lookup of the destination and the connectionFactory
+connectionFactory - the JNDI name of connection factory which the RA will use to consume the messages; this is normally a connection factory which supports XA
+
+#### Less commonly used activation configuration properties
+messageSelector
+acknowledgeMode
+subscriptionDurability
+clientId
+subscriptionName
+reconnectInterval - value is measured in seconds; default is -1 (i.e. infinite retries)
+reconnectAttempts - default is 5
+user
+pass
+minSession - default is 1
+maxSession - default is 15
+
+#### Rarely used activation configuration properties
+maxMessages - default is 1
+sessionTransacted - default is true
+redeliverUnspecified - default is true
+transactionTimeout
+isSameRMOverrideValue
+forceClearOnShutdown - default is false
+forceClearOnShutdownInterval - value is measured in milliseconds; default is 1000
+forceClearAttempts - default is 0
+forceTransacted - default is false
