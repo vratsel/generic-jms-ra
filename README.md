@@ -81,7 +81,7 @@ To create an outbound connection factory, use a deployment descriptor like this 
          </resource-adapters>
      </subsystem>
 
-This particular configuration binds a JMS connection factory to "java:/GenericJmsXA".  Under the covers it looks up the "XAConnectionFactory" via JNDI from JBM_HOST.
+This particular configuration binds a JMS connection factory to "java:/GenericJmsXA".  Under the covers it looks up the "XAConnectionFactory" via JNDI from JBM_HOST.  The "JndiParameters" are, of course, specific to JBoss AS 5 since that is the JNDI implementation to which we are connecting here.  To connect to a different kind of server you'll need to specify its specific JNDI properties as appropriate.
 
 ## Example MDB
 
