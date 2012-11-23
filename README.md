@@ -1,12 +1,24 @@
 # JBoss Generic JMS JCA Resource Adapter
 
-This project is for the JBoss Generic JMS JCA Resource Adapter.  As the name suggests, this JCA RA provides the ability to integrate with any JMS broker which allows remote clients to look-up connection factories and destinations via JNDI.  It currently is only verified to work in JBoss AS7 and supports, for example, consuming messages with an MDB and sending messages with a JCA-base JMS connection factory to 3rd-party brokers.  It is based on the generic JMS JCA RA found in previous versions of JBoss AS (e.g. 4, 5, and 6).  However, unlike those versions this is a stand-alone project now and no longer supports internal dead-letter processing since every modern JMS broker supports this already.
+This project is for the JBoss Generic JMS JCA Resource Adapter.  As the name suggests, this JCA RA provides the ability to integrate with any JMS broker which allows remote clients to look-up connection factories and destinations via JNDI (as outlined in section 4.2 of [the JMS 1.1 specification](http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CDEQFjAA&url=http%3A%2F%2Fdownload.oracle.com%2Fotn-pub%2Fjcp%2F7195-jms-1.1-fr-spec-oth-JSpec%2Fjms-1_1-fr-spec.pdf&ei=psavUKuZDaSy2wWZ54D4Cw&usg=AFQjCNGCh-3NatP_ezkZ6MSgeahTmUuyZg)).  It currently is only verified to work in JBoss AS7 and supports, for example, consuming messages with an MDB and sending messages with a JCA-base JMS connection factory to 3rd-party brokers.  It is based on the generic JMS JCA RA found in previous versions of JBoss AS (e.g. 4, 5, and 6).  However, unlike those versions this is a stand-alone project now and no longer supports internal dead-letter processing since every modern JMS broker supports this already.
+
+To be clear, the JBoss Generic JMS JCA Resource Adapter should only be used if the JMS provider with which you are integrating does not have a JCA Resource Adapter of its own.  Most enterprise JMS providers have their own JCA RA, but for whatever reason there are still a few who are lacking this essential integration component.
+
+## Project structure
+
+The project consists of three Maven modules:
+
+- The parent module
+ - The "generic-jms-ra-jar" module to create the library which goes inside the RAR.
+ - The "generic-jms-ra-rar" module to create the actual resource adapter archive which is deployed within the Java EE application server (e.g. JBoss AS7).  Pre-built versions of the resource adapter archive are available in the [downloads section](https://github.com/jbertram/generic-jms-ra/downloads).
 
 ## Build instructions
 
-This project is Mavenized so you only need to execute 'mvn install' to compile it and 'mvn -Prelease install' to generate the full, deployable resource adapter.
+1. Download the source via any of the methods which GitHub provides.
+2. Execute 'mvn install' to build the code.
+3. Execute 'mvn -Prelease install' to generate the deployable resource adapter.
 
-## JBoss AS7 Deployment notes
+## JBoss AS7 Deployment Notes
 
 Since this is a <em>generic</em> JMS JCA RA, the user must supply it with the proper client classes to actually make a physical connection to a 3rd party JMS broker.  Since AS7 uses a modular classload this requires the user to:
 
@@ -38,7 +50,7 @@ For example, to integrate with JBoss Messaging running in JBoss AS 5 create a mo
 	    </dependencies>
 	</module>
 
-Of course, the module.xml and all the related jar files would need to be placed in &lt;JBOSS_7_HOME&gt;/modules/org/jboss/jboss-5-client/main.
+Note the "name" of the &lt;module&gt; - "org.jboss.jboss-5-client".  This name must match the path of the module in &lt;JBOSS_7_HOME&gt;/modules, therefore all the related jar files would need to be placed in &lt;JBOSS_7_HOME&gt;/modules/org/jboss/jboss-5-client/main.
 
 The next step is to modify the generic JMS JCA RA to use this module so it has access to all the proper integration classes when it interacts with the remote JBoss Messaging broker.  To do this, simply add this line to the generic-jms-rar.rar/META-INF/manifest.mf:
 
