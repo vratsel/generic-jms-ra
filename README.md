@@ -56,6 +56,8 @@ The next step is to modify the generic JMS JCA RA to use this module so it has a
 
 	Dependencies: org.jboss.jboss-5-client
 
+Once the proper dependencies have been configured for the RAR, copy it to the "deployments" directory (e.g. &lt;JBOSS_HOME&gt;/standalone/deployments).
+
 ### Example deployment descriptor
 
 To create an outbound connection factory, use a deployment descriptor like this in your standalone*.xml.
@@ -163,6 +165,8 @@ The consumption and production will be done atomically because the underlying co
 When deploying an MDB which depends on a non-default RA it is customary to modify the MDB's deployment so that it is not deployed until the RA it needs has been deployed.  To do this in JBoss AS7 simply add this line to the META-INF/manifest.mf of your deployment:
 
 	Dependencies: deployment.generic-jms-rar.rar
+
+You can set up this kind of dependency for any application that needs to use the RA (e.g. a servlet sending a JMS message).
 
 ### Activation Configuration Properties
 
