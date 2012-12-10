@@ -239,30 +239,30 @@ This information was provided by a community member as I don't have access to a 
 
 Notice the "JndiParameters" are Tibco specific.
 
-### Activation Configuration Properties
+## Activation Configuration Properties
 
-#### Most commonly used activation configuration properties
+### Most commonly used activation configuration properties
 * <strong>destination</strong> - the JNDI name of JMS destination from which the MDB will consume messages; this is required
 * <strong>destinationType</strong> - the type of JMS destination from which to consume messages (e.g. javax.jms.Queue or javax.jms.Topic)
 * <strong>jndiParameters</strong> - the JNDI parameters used to perform the lookup of the destination and the connectionFactory; each parameter consists of a "name=value" pair; parameters are separated with a semi-colon (';'); if no parameters are specified then an empty InitialContext will be used (i.e. the lookup will be local)
 * <strong>connectionFactory</strong> - the JNDI name of connection factory which the RA will use to consume the messages; this is normally a connection factory which supports XA; this is required
 
-#### Less commonly used activation configuration properties
-* <strong>messageSelector</strong>
-* <strong>acknowledgeMode</strong>
-* <strong>subscriptionDurability</strong>
-* <strong>clientId</strong>
-* <strong>subscriptionName</strong>
-* <strong>reconnectInterval</strong> - value is measured in seconds; default is -1 (i.e. infinite retries)
-* <strong>reconnectAttempts</strong> - default is 5
-* <strong>user</strong>
-* <strong>pass</strong>
+### Less commonly used activation configuration properties
+* <strong>messageSelector</strong> - the JMS selector to use when consuming messages; default is null
+* <strong>acknowledgeMode</strong> - the acknowledgement mode used when consuming messages; only pertinent when using bean-managed transactions; value values are "DUPS_OK_ACKNOWLEDGE" and "AUTO_ACKNOWLEDGE"
+* <strong>subscriptionDurability</strong> - the durability of the topic subscription; default is non-durable; the value "Durable" makes the subscription durable, anything else makes it non-durable
+* <strong>clientId</strong> - the client ID to use for a topic subscription
+* <strong>subscriptionName</strong> - the name of the topic subscription
+* <strong>reconnectInterval</strong> - how long to wait between reconnectAttempts; value is measured in seconds; default is 10
+* <strong>reconnectAttempts</strong> - how many times to try to reconnect if the connection to the JMS broker is lost; default is -1 (i.e. infinite attempts)
+* <strong>user</strong> - the name of the user used when connecting to the JMS broker
+* <strong>pass</strong> - the password used when connecting to the JMS broker
 * <strong>minSession</strong> - default is 1
 * <strong>maxSession</strong> - default is 15
 
-#### Rarely used activation configuration properties
+### Rarely used activation configuration properties
 * <strong>maxMessages</strong> - default is 1
-* <strong>sessionTransacted</strong> - default is true
+* <strong>sessionTransacted</strong> - is the underlying JMS session used by the MDB transacted; default is true
 * <strong>redeliverUnspecified</strong> - default is true
 * <strong>transactionTimeout</strong>
 * <strong>isSameRMOverrideValue</strong>
