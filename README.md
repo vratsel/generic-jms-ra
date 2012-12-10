@@ -25,6 +25,19 @@ Since this is a <em>generic</em> JMS JCA RA, the user must supply it with the pr
 1. Create a module with the proper integration classes 
 2. Modify the manifest.mf of the RAR to use the aforementioned module
 
+If you don't want to use the @ResourceAdapter annotation on your EJB3 MDB(s) then you can change the default resource adapter which all MDBs in the system will use:
+
+	<subsystem xmlns="urn:jboss:domain:ejb3:1.2">
+	    ... 
+	    <mdb>
+	        <resource-adapter-ref resource-adapter-name="generic-jms-rar.rar"/>
+	        <bean-instance-pool-ref pool-name="mdb-strict-max-pool"/>
+	    </mdb>
+	    ...
+	</subsystem>
+
+## JBoss Messaging Integration
+
 For example, to integrate with JBoss Messaging running in JBoss AS 5 create a module.xml like this (jar files copied from &lt;JBOSS_5_HOME&gt;/client):
 
 	<module xmlns="urn:jboss:module:1.1" name="org.jboss.jboss-5-client">
@@ -58,46 +71,46 @@ The next step is to modify the generic JMS JCA RA to use this module so it has a
 
 Once the proper dependencies have been configured for the RAR, copy it to the "deployments" directory (e.g. &lt;JBOSS_HOME&gt;/standalone/deployments).
 
-### Example deployment descriptor
+### Example AS7 deployment descriptor
 
 To create an outbound connection factory, use a deployment descriptor like this in your standalone*.xml.
 
-     <subsystem xmlns="urn:jboss:domain:resource-adapters:1.0">
-         <resource-adapters>
-             <resource-adapter>
-                 <archive>
-                     generic-jms-rar.rar
-                 </archive>
-                 <transaction-support>XATransaction</transaction-support>
-                 <connection-definitions>
-                     <connection-definition class-name="org.jboss.resource.adapter.jms.JmsManagedConnectionFactory" jndi-name="java:/GenericJmsXA" enabled="true" use-java-context="true" pool-name="GenericJmsXA" use-ccm="true">
-                         <config-property name="JndiParameters">
-                             java.naming.factory.initial=org.jnp.interfaces.NamingContextFactory;java.naming.provider.url=JBM_HOST:1099;java.naming.factory.url.pkgs=org.jboss.naming:org.jnp.interfaces
-                         </config-property>
-                         <config-property name="ConnectionFactory">
-                             XAConnectionFactory
-                         </config-property>
-                         <xa-pool>
-                             <min-pool-size>0</min-pool-size>
-                             <max-pool-size>10</max-pool-size>
-                             <prefill>false</prefill>
-                             <use-strict-min>false</use-strict-min>
-                             <flush-strategy>FailingConnectionOnly</flush-strategy>
-                             <pad-xid>false</pad-xid>
-                             <wrap-xa-resource>true</wrap-xa-resource>
-                         </xa-pool>
-                         <security>
-                             <application/>
-                         </security>
-                     </connection-definition>
-                 </connection-definitions>
-             </resource-adapter>
-         </resource-adapters>
-     </subsystem>
+	<subsystem xmlns="urn:jboss:domain:resource-adapters:1.0">
+	    <resource-adapters>
+	        <resource-adapter>
+	            <archive>
+	                generic-jms-rar.rar
+	            </archive>
+	            <transaction-support>XATransaction</transaction-support>
+	            <connection-definitions>
+	                <connection-definition class-name="org.jboss.resource.adapter.jms.JmsManagedConnectionFactory" jndi-name="java:/GenericJmsXA" enabled="true" use-java-context="true" pool-name="GenericJmsXA" use-ccm="true">
+	                    <config-property name="JndiParameters">
+	                        java.naming.factory.initial=org.jnp.interfaces.NamingContextFactory;java.naming.provider.url=JBM_HOST:1099;java.naming.factory.url.pkgs=org.jboss.naming:org.jnp.interfaces
+	                    </config-property>
+	                    <config-property name="ConnectionFactory">
+	                        XAConnectionFactory
+	                    </config-property>
+	                    <xa-pool>
+	                        <min-pool-size>0</min-pool-size>
+	                        <max-pool-size>10</max-pool-size>
+	                        <prefill>false</prefill>
+	                        <use-strict-min>false</use-strict-min>
+	                        <flush-strategy>FailingConnectionOnly</flush-strategy>
+	                        <pad-xid>false</pad-xid>
+	                        <wrap-xa-resource>true</wrap-xa-resource>
+	                    </xa-pool>
+	                    <security>
+	                        <application/>
+	                    </security>
+	                </connection-definition>
+	            </connection-definitions>
+	        </resource-adapter>
+	    </resource-adapters>
+	</subsystem>
 
 This particular configuration binds a JMS connection factory to "java:/GenericJmsXA".  Under the covers it looks up the "XAConnectionFactory" via JNDI from JBM_HOST.  The "JndiParameters" are, of course, specific to JBoss AS 5 since that is the JNDI implementation to which we are connecting here.  To connect to a different kind of server you'll need to specify its specific JNDI properties as appropriate.
 
-## Example MDB
+### Example EJB3 MDB
 
 This MDB will connect to JBM_HOST using the "XAConnectionFactory" and consume messages from the "queue/source" destination.  It's important to note that the RA will use the "jndiParameters" activation configuration property to lookup the "connectionFactory" and the "destination."
 
@@ -166,7 +179,65 @@ When deploying an MDB which depends on a non-default RA it is customary to modif
 
 	Dependencies: deployment.generic-jms-rar.rar
 
-You can set up this kind of dependency for any application that needs to use the RA (e.g. a servlet sending a JMS message).
+You can set up this kind of dependency for any application that needs to use the RA (e.g. a servlet sending a JMS message).	
+
+## Tibco Integration 
+
+This information was provided by a community member as I don't have access to a Tibco instance.  Tibco EMS 5.1 was used in this example, but I imagine the same configuration could be used for other Tibco versions as well.
+
+### Tibco Module
+
+	<?xml version='1.0' encoding='UTF-8'?>
+	<module xmlns="urn:jboss:module:1.1" name="com.tibco.tibjms">
+	    <resources>
+	        <resource-root path="slf4j-api-1.4.2.jar"></resource-root>
+	        <resource-root path="slf4j-simple-1.4.2.jar"></resource-root>
+	        <resource-root path="tibcrypt.jar"></resource-root>
+	        <resource-root path="tibjms.jar"></resource-root>
+	        <resource-root path="tibjmsadmin.jar"></resource-root>
+	        <resource-root path="tibjmsufo.jar"></resource-root>
+	    </resources>
+	
+	    <dependencies>
+	        <module name="javax.api"></module>
+	        <module name="javax.jms.api"></module>
+	    </dependencies>
+	</module>
+
+### Example AS7 deployment descriptor
+
+	<subsystem xmlns="urn:jboss:domain:resource-adapters:1.0">
+	    <resource-adapters>
+	        <resource-adapter>
+	            <archive>
+	                generic-jms-rar.rar
+	            </archive>
+	            <transaction-support>NoTransaction</transaction-support>
+	            <connection-definitions>
+	                <connection-definition class-name="org.jboss.resource.adapter.jms.JmsManagedConnectionFactory" jndi-name="java:/GenericJmsXA" enabled="true" use-java-context="true" pool-name="GenericJmsXA" use-ccm="true">
+	                    <config-property name="JndiParameters">
+	                        java.naming.factory.initial=com.tibco.tibjms.naming.TibjmsInitialContextFactory;java.naming.provider.url=tcp://TIBCO_HOST:7222
+	                    </config-property>
+	                    <config-property name="ConnectionFactory">
+	                        QueueConnectionFactory
+	                    </config-property>
+	                    <pool>
+	                        <min-pool-size>0</min-pool-size>
+	                        <max-pool-size>10</max-pool-size>
+	                        <prefill>false</prefill>
+	                        <use-strict-min>false</use-strict-min>
+	                        <flush-strategy>FailingConnectionOnly</flush-strategy>
+	                    </pool>
+	                    <security>
+	                        <application></application>
+	                    </security>
+	                </connection-definition>
+	            </connection-definitions>
+	        </resource-adapter>
+	    </resource-adapters>
+	</subsystem>
+
+Notice the "JndiParameters" are Tibco specific.
 
 ### Activation Configuration Properties
 
