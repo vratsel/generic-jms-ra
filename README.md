@@ -51,7 +51,7 @@ Or perhaps:
 
     @TransactionManagement(TransactionManagementType.BEAN)
 
-Otherwise an Exception will be thrown and the MDB will not deploy.
+Otherwise an exception will be thrown and the MDB will not deploy.
 
 ## JBoss AS7 Deployment Notes
 
@@ -210,7 +210,50 @@ The consumption and production will be done atomically because the underlying co
 	   }
 	}
 
-When deploying an MDB which depends on a non-default RA it is customary to modify the MDB's deployment so that it is not deployed until the RA it needs has been deployed.  To do this in JBoss AS7 simply add this line to the META-INF/manifest.mf of your deployment:
+If you don't want to specify your MDB configuration in the code via annotations then you can use the traditional ejb-jar.xml deployment descriptor.  Furthermore, in JBoss AS7 you can use system property substitution in ejb-jar.xml so that you can change the configuration of the MDB without opening the archive in which the MDB is deployed (e.g. JAR or EAR).  This is helpful when for example you need to move an application from a development environment to a QA or production environment.  To enable system property substitution in ejb-jar.xml in JBoss AS7 set the `<spec-descriptor-property-replacement>` to `true`, e.g.:
+
+    <subsystem xmlns="urn:jboss:domain:ee:1.1">
+        <spec-descriptor-property-replacement>true</spec-descriptor-property-replacement>
+        <jboss-descriptor-property-replacement>true</jboss-descriptor-property-replacement>
+    </subsystem>
+
+Here is an example ejb-jar.xml that would replace the @MessageDriven configuration above:
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <ejb-jar version="3.0" xmlns="http://java.sun.com/xml/ns/javaee"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/ejb-jar_3_0.xsd">
+       <enterprise-beans>
+          <message-driven>
+             <ejb-name>ExampleMDB</ejb-name>
+             <ejb-class>ExampleMDB</ejb-class>
+             <activation-config>
+                <activation-config-property>
+                    <activation-config-property-name>destinationType</activation-config-property-name>
+                    <activation-config-property-value>javax.jms.Queue</activation-config-property-value>
+                </activation-config-property>
+                <activation-config-property>
+                   <activation-config-property-name>destination</activation-config-property-name>
+                   <activation-config-property-value>/queue/source</activation-config-property-value>
+                </activation-config-property>
+                <activation-config-property>
+                   <activation-config-property-name>jndiParameters</activation-config-property-name>
+                   <activation-config-property-value>java.naming.factory.initial=org.jnp.interfaces.NamingContextFactory;java.naming.provider.url=${myJmsProvider};java.naming.factory.url.pkgs=org.jboss.naming:org.jnp.interfaces</activation-config-property-value>
+                </activation-config-property>
+                <activation-config-property>
+                   <activation-config-property-name>connectionFactory</activation-config-property-name>
+                   <activation-config-property-value>${myConnectionFactory}</activation-config-property-value>
+                </activation-config-property>
+             </activation-config>
+          </message-driven>
+       </enterprise-beans>
+    </ejb-jar>
+
+Notice that both the `jndiParameters` and `connectionFactory` activation configuration properties use a special `${}` syntax in their values.  That is where the substitution would take place.  You can specify the value of those substitutions on the command line when you start JBoss AS7, e.g.:
+
+    ./standalone.sh -c standalone-full.xml -DmyJmsProvider=hostname:1099 -DmyConnectionFactory=FooConnectionFactory
+
+Lastly, when deploying an MDB which depends on a non-default RA it is customary to modify the MDB's deployment so that it is not deployed until the RA it needs has been deployed.  To do this in JBoss AS7 simply add this line to the META-INF/manifest.mf of your deployment:
 
 	Dependencies: deployment.generic-jms-rar.rar
 
