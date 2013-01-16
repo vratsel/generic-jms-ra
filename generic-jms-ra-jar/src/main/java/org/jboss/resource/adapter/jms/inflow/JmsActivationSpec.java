@@ -21,7 +21,10 @@
  */
 package org.jboss.resource.adapter.jms.inflow;
 
+import javax.jms.Destination;
+import javax.jms.Queue;
 import javax.jms.Session;
+import javax.jms.Topic;
 import javax.resource.ResourceException;
 import javax.resource.spi.ActivationSpec;
 import javax.resource.spi.InvalidPropertyException;
@@ -56,7 +59,7 @@ public class JmsActivationSpec implements ActivationSpec {
     /**
      * The destination type
      */
-    private String destinationType;
+    private String destinationType = Destination.class.getName();
 
     /**
      * The message selector
@@ -174,7 +177,7 @@ public class JmsActivationSpec implements ActivationSpec {
         } else if ("AUTO_ACKNOWLEDGE".equals(acknowledgeMode) || "Auto-acknowledge".equals(acknowledgeMode)) {
             this.acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
         } else {
-            throw new IllegalArgumentException("Unsupported acknowledgement mode " + acknowledgeMode);
+            throw new IllegalArgumentException("Unsupported acknowledgement mode: " + acknowledgeMode);
         }
     }
 
@@ -224,7 +227,13 @@ public class JmsActivationSpec implements ActivationSpec {
      * @param destinationType The destinationType to set.
      */
     public void setDestinationType(String destinationType) {
-        this.destinationType = destinationType;
+        if (Topic.class.getName().equals(destinationType) ||
+                Queue.class.getName().equals(destinationType) ||
+                Destination.class.getName().equals(destinationType)) {
+            this.destinationType = destinationType;
+        } else {
+            throw new IllegalArgumentException("Unsupported destinationType: " + destinationType);
+        }
     }
 
     /**

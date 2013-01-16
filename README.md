@@ -217,6 +217,8 @@ If you don't want to specify your MDB configuration in the code via annotations 
         <jboss-descriptor-property-replacement>true</jboss-descriptor-property-replacement>
     </subsystem>
 
+As I understand it, `<spec-descriptor-property-replacement>` is set to `false` by default because of the way the Java EE TCK works.
+
 Here is an example ejb-jar.xml that would replace the @MessageDriven configuration above:
 
     <?xml version="1.0" encoding="UTF-8"?>
@@ -251,7 +253,7 @@ Here is an example ejb-jar.xml that would replace the @MessageDriven configurati
 
 Notice that both the `jndiParameters` and `connectionFactory` activation configuration properties use a special `${}` syntax in their values.  That is where the substitution would take place.  You can specify the value of those substitutions on the command line when you start JBoss AS7, e.g.:
 
-    ./standalone.sh -c standalone-full.xml -DmyJmsProvider=hostname:1099 -DmyConnectionFactory=FooConnectionFactory
+    ./standalone.sh -c standalone-full.xml -DmyJmsProvider=hostname:1099 -DmyConnectionFactory=XAConnectionFactory
 
 Lastly, when deploying an MDB which depends on a non-default RA it is customary to modify the MDB's deployment so that it is not deployed until the RA it needs has been deployed.  To do this in JBoss AS7 simply add this line to the META-INF/manifest.mf of your deployment:
 
@@ -321,13 +323,13 @@ Notice the "JndiParameters" are Tibco specific.
 
 ### Most commonly used activation configuration properties
 * <strong>destination</strong> - the JNDI name of JMS destination from which the MDB will consume messages; **this is required**
-* <strong>destinationType</strong> - the type of JMS destination from which to consume messages; valid values are "javax.jms.Queue" or "javax.jms.Topic"
+* <strong>destinationType</strong> - the type of JMS destination from which to consume messages; valid values are `javax.jms.Queue`, `javax.jms.Topic`, or `javax.jms.Destination`; default is `javax.jms.Destination`
 * <strong>jndiParameters</strong> - the JNDI parameters used to perform the lookup of the destination and the connectionFactory; each parameter consists of a "name=value" pair; parameters are separated with a semi-colon (';'); if no parameters are specified then an empty InitialContext will be used (i.e. the lookup will be local)
-* <strong>connectionFactory</strong> - the JNDI name of connection factory which the RA will use to consume the messages; this is normally a connection factory which supports XA; this is required
+* <strong>connectionFactory</strong> - the JNDI name of connection factory which the RA will use to consume the messages; this is normally a connection factory which supports XA; **this is required**
 
 ### Less commonly used activation configuration properties
 * <strong>messageSelector</strong> - the JMS selector to use when consuming messages; default is null
-* <strong>acknowledgeMode</strong> - the acknowledgement mode used when consuming messages; only applicable when using Bean-Managed transactions; valid values are "DUPS_OK_ACKNOWLEDGE" and "AUTO_ACKNOWLEDGE"; default is "AUTO_ACKNOWLEDGE"; when Container-Managed transactions are used the acknowledgement of the message is performed by the Java EE application server in accordance with the outcome of the MDB's transaction (assuming such a transaction exists)
+* <strong>acknowledgeMode</strong> - the acknowledgement mode used when consuming messages; only applicable when using Bean-Managed transactions; valid values are `DUPS_OK_ACKNOWLEDGE` and `AUTO_ACKNOWLEDGE`; default is `AUTO_ACKNOWLEDGE`; when Container-Managed transactions are used the acknowledgement of the message is performed by the Java EE application server in accordance with the outcome of the MDB's transaction (assuming such a transaction exists)
 * <strong>subscriptionDurability</strong> - the durability of the topic subscription; default is non-durable; the value "Durable" makes the subscription durable, anything else makes it non-durable
 * <strong>clientId</strong> - the client ID to use for a topic subscription
 * <strong>subscriptionName</strong> - the name of the topic subscription

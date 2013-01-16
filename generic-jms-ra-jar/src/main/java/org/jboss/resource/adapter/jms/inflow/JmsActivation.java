@@ -352,27 +352,21 @@ public class JmsActivation implements ExceptionListener {
         String destinationName = spec.getDestination();
 
         String destinationTypeString = spec.getDestinationType();
-        if (destinationTypeString != null && !destinationTypeString.trim().equals("")) {
-            log.debug("Destination type defined as " + destinationTypeString);
+        log.debug("Destination type defined as " + destinationTypeString);
 
-            Class<?> destinationType;
-            if (Topic.class.getName().equals(destinationTypeString)) {
-                destinationType = Topic.class;
-                isTopic = true;
-            } else {
-                destinationType = Queue.class;
-            }
-
-            log.debug("Retrieving destination " + destinationName + " of type " + destinationType.getName());
-            destination = (Destination) lookup(ctx, destinationName, destinationType);
+        Class<?> destinationType;
+        if (Topic.class.getName().equals(destinationTypeString)) {
+            destinationType = Topic.class;
+        } else if (Queue.class.getName().equals(destinationTypeString)) {
+            destinationType = Queue.class;
         } else {
-            log.debug("Destination type not defined");
-            log.debug("Retrieving destination " + destinationName + " of type " + Destination.class.getName());
+            destinationType = Destination.class;
+        }
 
-            destination = (Destination) lookup(ctx, destinationName, Destination.class);
-            if (destination instanceof Topic) {
-                isTopic = true;
-            }
+        log.debug("Retrieving destination " + destinationName + " of type " + destinationType.getName());
+        destination = (Destination) lookup(ctx, destinationName, destinationType);
+        if (destination instanceof Topic) {
+            isTopic = true;
         }
 
         log.debug("Got destination " + destination + " from " + destinationName);
