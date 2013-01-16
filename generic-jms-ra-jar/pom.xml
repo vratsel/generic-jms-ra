@@ -4,13 +4,13 @@
 
     <parent>
         <groupId>org.jboss.genericjms</groupId>
-        <artifactId>generic-jms-rar-pom</artifactId>
+        <artifactId>generic-jms-ra-pom</artifactId>
         <version>1.0.RC1</version>
     </parent>
 
-    <artifactId>generic-jms-ra</artifactId>
+    <artifactId>generic-jms-ra-jar</artifactId>
     <packaging>jar</packaging>
-    <name>JBoss Generic JMS RAR JAR</name>
+    <name>JBoss Generic JMS RA JAR</name>
 
     <dependencies>
         <dependency>

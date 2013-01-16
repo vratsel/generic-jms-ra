@@ -2,31 +2,31 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-   <parent>
-      <groupId>org.jboss.genericjms</groupId>
-      <artifactId>generic-jms-rar-pom</artifactId>
-      <version>1.0.RC1</version>
-   </parent>
+    <parent>
+        <groupId>org.jboss.genericjms</groupId>
+        <artifactId>generic-jms-ra-pom</artifactId>
+        <version>1.0.RC1</version>
+    </parent>
 
-    <artifactId>generic-jms-rar</artifactId>
+    <artifactId>generic-jms-ra-rar</artifactId>
     <packaging>rar</packaging>
-    <name>Generic JMS RA</name>
+    <name>JBoss Generic JMS RA RAR</name>
 
     <dependencies>
         <dependency>
             <groupId>org.jboss.genericjms</groupId>
-            <artifactId>generic-jms-ra</artifactId>
-            <version>1.0.BETA</version>
+            <artifactId>generic-jms-ra-jar</artifactId>
+            <version>1.0.RC1</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-rar-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-rar-plugin</artifactId>
                 <configuration>
-                   <raXmlFile>src/main/resources/ra.xml</raXmlFile>
+                    <raXmlFile>src/main/resources/ra.xml</raXmlFile>
                 </configuration>
             </plugin>
         </plugins>
