@@ -30,28 +30,23 @@ import javax.jms.ObjectMessage;
  * A wrapper for a message
  *
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 71554 $
  */
-public class JmsObjectMessage extends JmsMessage implements ObjectMessage
-{
-   /**
-    * Create a new wrapper
-    * 
-    * @param message the message
-    * @param session the session
-    */
-   public JmsObjectMessage(ObjectMessage message, JmsSession session)
-   {
-      super(message, session);
-   }
+public class JmsObjectMessage extends JmsMessage implements ObjectMessage {
+    /**
+     * Create a new wrapper
+     *
+     * @param message the message
+     * @param session the session
+     */
+    public JmsObjectMessage(ObjectMessage message, JmsSession session) {
+        super(message, session);
+    }
 
-   public Serializable getObject() throws JMSException
-   {
-      return ((ObjectMessage) message).getObject();
-   }
-   
-   public void setObject(Serializable object) throws JMSException
-   {
-      ((ObjectMessage) message).setObject(object);
-   }
+    public Serializable getObject() throws JMSException {
+        return ((ObjectMessage) message).getObject();
+    }
+
+    public void setObject(Serializable object) throws JMSException {
+        ((ObjectMessage) message).setObject(object);
+    }
 }

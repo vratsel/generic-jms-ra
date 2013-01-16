@@ -28,31 +28,31 @@ import javax.jms.MessageListener;
  * A wrapper for a message listener
  *
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 71554 $
  */
-public class JmsMessageListener implements MessageListener
-{
-   /** The message listener */
-   MessageListener listener;
-   
-   /** The consumer */
-   JmsMessageConsumer consumer;
+public class JmsMessageListener implements MessageListener {
+    /**
+     * The message listener
+     */
+    MessageListener listener;
 
-   /**
-    * Create a new wrapper
-    * 
-    * @param listener the listener
-    * @param consumer the consumer
-    */
-   public JmsMessageListener(MessageListener listener, JmsMessageConsumer consumer)
-   {
-      this.listener = listener;
-      this.consumer = consumer;
-   }
+    /**
+     * The consumer
+     */
+    JmsMessageConsumer consumer;
 
-   public void onMessage(Message message)
-   {
-      message = consumer.wrapMessage(message);
-      listener.onMessage(message);
-   }
+    /**
+     * Create a new wrapper
+     *
+     * @param listener the listener
+     * @param consumer the consumer
+     */
+    public JmsMessageListener(MessageListener listener, JmsMessageConsumer consumer) {
+        this.listener = listener;
+        this.consumer = consumer;
+    }
+
+    public void onMessage(Message message) {
+        message = consumer.wrapMessage(message);
+        listener.onMessage(message);
+    }
 }

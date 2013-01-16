@@ -29,24 +29,20 @@ import javax.jms.QueueReceiver;
  * A wrapper for a queue receiver
  *
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 71790 $
  */
-public class JmsQueueReceiver extends JmsMessageConsumer implements QueueReceiver
-{
-   /**
-    * Create a new wrapper
-    * 
-    * @param consumer the queue receiver
-    * @param session the session
-    */
-   public JmsQueueReceiver(QueueReceiver consumer, JmsSession session)
-   {
-      super(consumer, session);
-   }
+public class JmsQueueReceiver extends JmsMessageConsumer implements QueueReceiver {
+    /**
+     * Create a new wrapper
+     *
+     * @param consumer the queue receiver
+     * @param session  the session
+     */
+    public JmsQueueReceiver(QueueReceiver consumer, JmsSession session) {
+        super(consumer, session);
+    }
 
-   public Queue getQueue() throws JMSException
-   {
-      checkState();
-      return ((QueueReceiver) consumer).getQueue();
-   }
+    public Queue getQueue() throws JMSException {
+        checkState();
+        return ((QueueReceiver) consumer).getQueue();
+    }
 }

@@ -29,30 +29,25 @@ import javax.jms.TopicSubscriber;
  * A wrapper for a topic subscriber
  *
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 71790 $
  */
-public class JmsTopicSubscriber extends JmsMessageConsumer implements TopicSubscriber
-{
-   /**
-    * Create a new wrapper
-    * 
-    * @param consumer the topic subscriber
-    * @param session the session
-    */
-   public JmsTopicSubscriber(TopicSubscriber consumer, JmsSession session)
-   {
-      super(consumer, session);
-   }
+public class JmsTopicSubscriber extends JmsMessageConsumer implements TopicSubscriber {
+    /**
+     * Create a new wrapper
+     *
+     * @param consumer the topic subscriber
+     * @param session  the session
+     */
+    public JmsTopicSubscriber(TopicSubscriber consumer, JmsSession session) {
+        super(consumer, session);
+    }
 
-   public boolean getNoLocal() throws JMSException
-   {
-      checkState();
-      return ((TopicSubscriber) consumer).getNoLocal();
-   }
+    public boolean getNoLocal() throws JMSException {
+        checkState();
+        return ((TopicSubscriber) consumer).getNoLocal();
+    }
 
-   public Topic getTopic() throws JMSException
-   {
-      checkState();
-      return ((TopicSubscriber) consumer).getTopic();
-   }
+    public Topic getTopic() throws JMSException {
+        checkState();
+        return ((TopicSubscriber) consumer).getTopic();
+    }
 }

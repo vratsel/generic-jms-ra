@@ -31,15 +31,10 @@ import javax.jms.TopicConnectionFactory;
  * An aggregate interface for QueueConnectionFactory and
  * TopicConnectionFactory.  Also marks as serializable.
  *
- * @author  <a href="mailto:peter.antman@tim.se">Peter Antman</a>.
+ * @author <a href="mailto:peter.antman@tim.se">Peter Antman</a>.
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version <pre>$Revision: 71554 $</pre>
  */
-public interface JmsConnectionFactory 
-   extends ConnectionFactory,
-           TopicConnectionFactory,
-           QueueConnectionFactory,
-           Serializable
+public interface JmsConnectionFactory extends ConnectionFactory, TopicConnectionFactory, QueueConnectionFactory, Serializable
 {
    int AGNOSTIC = 0;
    int QUEUE = 1;

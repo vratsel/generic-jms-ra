@@ -30,66 +30,56 @@ import org.jboss.logging.Logger;
 
 /**
  * JmsQueueSender.
- * 
+ *
  * @author <a href="adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 85945 $
  */
-public class JmsQueueSender extends JmsMessageProducer implements QueueSender
-{
-   private static final Logger log = Logger.getLogger(JmsQueueSender.class);
-   
-   /** Whether trace is enabled */
-   private boolean trace = log.isTraceEnabled();
+public class JmsQueueSender extends JmsMessageProducer implements QueueSender {
+    private static final Logger log = Logger.getLogger(JmsQueueSender.class);
 
-   /**
-    * Create a new wrapper
-    * 
-    * @param producer the producer
-    * @param session the session
-    */
-   public JmsQueueSender(QueueSender producer, JmsSession session)
-   {
-      super(producer, session);
-   }
+    /**
+     * Whether trace is enabled
+     */
+    private boolean trace = log.isTraceEnabled();
 
-   public Queue getQueue() throws JMSException
-   {
-      return ((QueueSender) producer).getQueue();
-   }
+    /**
+     * Create a new wrapper
+     *
+     * @param producer the producer
+     * @param session  the session
+     */
+    public JmsQueueSender(QueueSender producer, JmsSession session) {
+        super(producer, session);
+    }
 
-   public void send(Queue destination, Message message, int deliveryMode, int priority, long timeToLive) throws JMSException
-   {
-      session.lock();
-      try
-      {
-         if (trace)
-            log.trace("send " + this + " destination=" + destination + " message=" + message + " deliveryMode=" + deliveryMode + " priority=" + priority + " ttl=" + timeToLive);
-         checkState();
-         producer.send(destination, message, deliveryMode, priority, timeToLive);
-         if (trace)
-            log.trace("sent " + this + " result=" + message);
-      }
-      finally
-      {
-         session.unlock();
-      }
-   }
+    public Queue getQueue() throws JMSException {
+        return ((QueueSender) producer).getQueue();
+    }
 
-   public void send(Queue destination, Message message) throws JMSException
-   {
-      session.lock();
-      try
-      {
-         if (trace)
-            log.trace("send " + this + " destination=" + destination + " message=" + message);
-         checkState();
-         producer.send(destination, message);
-         if (trace)
-            log.trace("sent " + this + " result=" + message);
-      }
-      finally
-      {
-         session.unlock();
-      }
-   }
+    public void send(Queue destination, Message message, int deliveryMode, int priority, long timeToLive) throws JMSException {
+        session.lock();
+        try {
+            if (trace)
+                log.trace("send " + this + " destination=" + destination + " message=" + message + " deliveryMode=" + deliveryMode + " priority=" + priority + " ttl=" + timeToLive);
+            checkState();
+            producer.send(destination, message, deliveryMode, priority, timeToLive);
+            if (trace)
+                log.trace("sent " + this + " result=" + message);
+        } finally {
+            session.unlock();
+        }
+    }
+
+    public void send(Queue destination, Message message) throws JMSException {
+        session.lock();
+        try {
+            if (trace)
+                log.trace("send " + this + " destination=" + destination + " message=" + message);
+            checkState();
+            producer.send(destination, message);
+            if (trace)
+                log.trace("sent " + this + " result=" + message);
+        } finally {
+            session.unlock();
+        }
+    }
 }

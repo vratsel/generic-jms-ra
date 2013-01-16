@@ -32,163 +32,142 @@ import org.jboss.util.Strings;
  *
  * @author Peter Antman
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 71554 $
  */
-public class JmsMCFProperties
-   implements java.io.Serializable
-{
-   static final long serialVersionUID = -7997396849692340121L;
+public class JmsMCFProperties implements java.io.Serializable {
+    static final long serialVersionUID = -7997396849692340121L;
 
-   public static final String QUEUE_TYPE = Queue.class.getName();
-   public static final String TOPIC_TYPE = Topic.class.getName();
+    public static final String QUEUE_TYPE = Queue.class.getName();
+    public static final String TOPIC_TYPE = Topic.class.getName();
 
-   String userName;
-   String password;
-   String clientID;
-   String jndiParameters;
-   String connectionFactory;
-   int type = JmsConnectionFactory.AGNOSTIC;
-   
-   public JmsMCFProperties()
-   {
-      // empty
-   }
-   
-   /**
-    * Set userName, null by default.
-    */
-   public void setUserName(final String userName)
-   {
-      this.userName = userName;
-   }
+    String userName;
+    String password;
+    String clientID;
+    String jndiParameters;
+    String connectionFactory;
+    int type = JmsConnectionFactory.AGNOSTIC;
 
-   /**
-    * Get userName, may be null.
-    */ 
-   public String getUserName()
-   {
-      return userName;
-   }
-   
-   /**
-    * Set password, null by default.
-    */
-   public void setPassword(final String password)
-   {
-      this.password = password;
-   }
-   
-   /**
-    * Get password, may be null.
-    */
-   public String getPassword()
-   {
-      return password;
-   }
-   
-   /**
-    * Get client id, may be null.
-    */
-   public String getClientID()
-   {
-      return clientID;
-   }
-   
-   /**
-    * Set client id, null by default.
-    */
-   public void setClientID(final String clientID)
-   {
-      this.clientID = clientID;
-   }
+    public JmsMCFProperties() {
+        // empty
+    }
 
-   /**
-    * Type of the JMS Session.
-    */
-   public int getType()
-   {
-      return type;
-   }
+    /**
+     * Set userName, null by default.
+     */
+    public void setUserName(final String userName) {
+        this.userName = userName;
+    }
 
-   /**
-    * Set the default session type.
-    */
-   public void setType(int type)
-   {
-      this.type = type;
-   }
+    /**
+     * Get userName, may be null.
+     */
+    public String getUserName() {
+        return userName;
+    }
 
-   public String getConnectionFactory()
-   {
-      return connectionFactory;
-   }
+    /**
+     * Set password, null by default.
+     */
+    public void setPassword(final String password) {
+        this.password = password;
+    }
 
-   public void setConnectionFactory(String connectionFactory)
-   {
-      this.connectionFactory = connectionFactory;
-   }
+    /**
+     * Get password, may be null.
+     */
+    public String getPassword() {
+        return password;
+    }
 
-   public String getJndiParameters()
-   {
-      return jndiParameters;
-   }
+    /**
+     * Get client id, may be null.
+     */
+    public String getClientID() {
+        return clientID;
+    }
 
-   public void setJndiParameters(String jndiParameters)
-   {
-      this.jndiParameters = jndiParameters;
-   }
+    /**
+     * Set client id, null by default.
+     */
+    public void setClientID(final String clientID) {
+        this.clientID = clientID;
+    }
 
-   /**
-    * Helper method to set the default session type.
-    *
-    * @param type either javax.jms.Topic or javax.jms.Queue
-    * @exception ResourceException if type was not a valid type.
-    */
-   public void setSessionDefaultType(String type) throws ResourceException
-   {
-      if (type.equals(QUEUE_TYPE))
-         this.type = JmsConnectionFactory.QUEUE;
-      else if(type.equals(TOPIC_TYPE))
-         this.type = JmsConnectionFactory.TOPIC;
-      else
-         this.type = JmsConnectionFactory.AGNOSTIC;
-   }
+    /**
+     * Type of the JMS Session.
+     */
+    public int getType() {
+        return type;
+    }
 
-   public String getSessionDefaultType()
-   {
-      if (type == JmsConnectionFactory.AGNOSTIC)
-         return "agnostic";
-      else if (type == JmsConnectionFactory.QUEUE)
-         return TOPIC_TYPE;
-      else
-         return QUEUE_TYPE;
-   }
+    /**
+     * Set the default session type.
+     */
+    public void setType(int type) {
+        this.type = type;
+    }
 
-   /**
-    * Test for equality of all attributes.
-    */
-   public boolean equals(Object obj)
-   {
-      if (obj == null) return false;
-      
-      if (obj instanceof JmsMCFProperties)
-      {
-         JmsMCFProperties you = (JmsMCFProperties) obj;
-         return (Strings.compare(userName, you.getUserName()) &&
-                 Strings.compare(password, you.getPassword()) &&
-                 this.type == you.type);
-      }
-      
-      return false;
-   }
- 
-   /**
-    * Simple hashCode of all attributes. 
-    */
-   public int hashCode()
-   {
-      // FIXME
-      String result = "" + userName + password + type;
-      return result.hashCode();
-   }
+    public String getConnectionFactory() {
+        return connectionFactory;
+    }
+
+    public void setConnectionFactory(String connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }
+
+    public String getJndiParameters() {
+        return jndiParameters;
+    }
+
+    public void setJndiParameters(String jndiParameters) {
+        this.jndiParameters = jndiParameters;
+    }
+
+    /**
+     * Helper method to set the default session type.
+     *
+     * @param type either javax.jms.Topic or javax.jms.Queue
+     * @throws ResourceException if type was not a valid type.
+     */
+    public void setSessionDefaultType(String type) throws ResourceException {
+        if (type.equals(QUEUE_TYPE))
+            this.type = JmsConnectionFactory.QUEUE;
+        else if (type.equals(TOPIC_TYPE))
+            this.type = JmsConnectionFactory.TOPIC;
+        else
+            this.type = JmsConnectionFactory.AGNOSTIC;
+    }
+
+    public String getSessionDefaultType() {
+        if (type == JmsConnectionFactory.AGNOSTIC)
+            return "agnostic";
+        else if (type == JmsConnectionFactory.QUEUE)
+            return TOPIC_TYPE;
+        else
+            return QUEUE_TYPE;
+    }
+
+    /**
+     * Test for equality of all attributes.
+     */
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+
+        if (obj instanceof JmsMCFProperties) {
+            JmsMCFProperties you = (JmsMCFProperties) obj;
+            return (Strings.compare(userName, you.getUserName()) &&
+                    Strings.compare(password, you.getPassword()) &&
+                    this.type == you.type);
+        }
+
+        return false;
+    }
+
+    /**
+     * Simple hashCode of all attributes.
+     */
+    public int hashCode() {
+        // FIXME
+        String result = "" + userName + password + type;
+        return result.hashCode();
+    }
 }

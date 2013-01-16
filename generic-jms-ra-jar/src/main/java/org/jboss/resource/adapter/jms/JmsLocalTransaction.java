@@ -25,63 +25,44 @@ import javax.jms.JMSException;
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
 
-//import org.jboss.resource.JBossResourceException;
 
 /**
  * JMS Local transaction
- * 
+ *
  * @author <a href="mailto:peter.antman@tim.se">Peter Antman </a>.
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 71790 $
  */
-public class JmsLocalTransaction implements LocalTransaction
-{
-	protected JmsManagedConnection mc;
+public class JmsLocalTransaction implements LocalTransaction {
+    protected JmsManagedConnection mc;
 
-	public JmsLocalTransaction(final JmsManagedConnection mc)
-	{
-		this.mc = mc;
-	}
+    public JmsLocalTransaction(final JmsManagedConnection mc) {
+        this.mc = mc;
+    }
 
-	public void begin() throws ResourceException
-	{
-	}
+    public void begin() throws ResourceException {
+    }
 
-	public void commit() throws ResourceException
-	{
-	    mc.lock();
-		try
-		{
-			if (mc.getSession().getTransacted())
-				mc.getSession().commit();
-		}
-		catch (JMSException e)
-		{
-//			throw new JBossResourceException("Could not commit LocalTransaction", e);
-         throw new ResourceException("Could not commit LocalTransaction", e);
-		}
-		finally
-		{
-		   mc.unlock();
-		}
-	}
+    public void commit() throws ResourceException {
+        mc.lock();
+        try {
+            if (mc.getSession().getTransacted())
+                mc.getSession().commit();
+        } catch (JMSException e) {
+            throw new ResourceException("Could not commit LocalTransaction", e);
+        } finally {
+            mc.unlock();
+        }
+    }
 
-	public void rollback() throws ResourceException
-	{
-	    mc.lock();
-		try
-		{
-			if (mc.getSession().getTransacted())
-				mc.getSession().rollback();
-		}
-		catch (JMSException ex)
-		{
-//			throw new JBossResourceException("Could not rollback LocalTransaction", ex);
-         throw new ResourceException("Could not rollback LocalTransaction", ex);
-		}
-		finally
-		{
-		   mc.unlock();
-		}
-	}
+    public void rollback() throws ResourceException {
+        mc.lock();
+        try {
+            if (mc.getSession().getTransacted())
+                mc.getSession().rollback();
+        } catch (JMSException ex) {
+            throw new ResourceException("Could not rollback LocalTransaction", ex);
+        } finally {
+            mc.unlock();
+        }
+    }
 }

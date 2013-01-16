@@ -38,314 +38,273 @@ import org.jboss.logging.Logger;
 
 /**
  * Jms ManagedConectionFactory
- * 
+ *
  * @author <a href="mailto:peter.antman@tim.se">Peter Antman </a>.
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 76316 $
  */
-public class JmsManagedConnectionFactory implements ManagedConnectionFactory
-{
-   private static final long serialVersionUID = -923483284031773011L;
+public class JmsManagedConnectionFactory implements ManagedConnectionFactory {
+    private static final long serialVersionUID = -923483284031773011L;
 
-   private static final Logger log = Logger.getLogger(JmsManagedConnection.class);
+    private static final Logger log = Logger.getLogger(JmsManagedConnection.class);
 
-   /** Settable attributes in ra.xml */
-   private JmsMCFProperties mcfProperties = new JmsMCFProperties();
+    /**
+     * Settable attributes in ra.xml
+     */
+    private JmsMCFProperties mcfProperties = new JmsMCFProperties();
 
-   /** Whether we are strict */
-   private Boolean strict = true;
+    /**
+     * Whether we are strict
+     */
+    private Boolean strict = true;
 
-   /** For local access. */
-//   private JMSProviderAdapter adapter;
-   
-   /** The try lock */
-   private Integer useTryLock = 60;
+    /**
+     * The try lock
+     */
+    private Integer useTryLock = 60;
 
-   public JmsManagedConnectionFactory()
-   {
-      // empty
-   }
+    public JmsManagedConnectionFactory() {
+        // empty
+    }
 
-   /**
-    * Create a "non managed" connection factory. No appserver involved
-    */
-   public Object createConnectionFactory() throws ResourceException
-   {
-      return createConnectionFactory(null);
-   }
+    /**
+     * Create a "non managed" connection factory. No appserver involved
+     */
+    public Object createConnectionFactory() throws ResourceException {
+        return createConnectionFactory(null);
+    }
 
-   /**
-    * Create a ConnectionFactory with appserver hook
-    */
-   public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException
-   {
-      Object cf = new JmsConnectionFactoryImpl(this, cxManager);
+    /**
+     * Create a ConnectionFactory with appserver hook
+     */
+    public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
+        Object cf = new JmsConnectionFactoryImpl(this, cxManager);
 
-      if (log.isTraceEnabled())
-      {
-         log.trace("Created connection factory: " + cf + ", using connection manager: " + cxManager);
-      }
+        if (log.isTraceEnabled()) {
+            log.trace("Created connection factory: " + cf + ", using connection manager: " + cxManager);
+        }
 
-      return cf;
-   }
+        return cf;
+    }
 
-   /**
-    * Create a new connection to manage in pool
-    */
-   public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo info)
-         throws ResourceException
-   {
-      boolean trace = log.isTraceEnabled();
+    /**
+     * Create a new connection to manage in pool
+     */
+    public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo info) throws ResourceException {
+        boolean trace = log.isTraceEnabled();
 
-      info = getInfo(info);
-      if (trace)
-         log.trace("connection request info: " + info);
+        info = getInfo(info);
+        if (trace)
+            log.trace("connection request info: " + info);
 
-      JmsCred cred = JmsCred.getJmsCred(this, subject, info);
-      if (trace)
-         log.trace("jms credentials: " + cred);
+        JmsCred cred = JmsCred.getJmsCred(this, subject, info);
+        if (trace)
+            log.trace("jms credentials: " + cred);
 
-      // OK we got autentication stuff
-      JmsManagedConnection mc = new JmsManagedConnection(this, info, cred.name, cred.pwd);
+        // OK we got autentication stuff
+        JmsManagedConnection mc = new JmsManagedConnection(this, info, cred.name, cred.pwd);
 
-      if (trace)
-         log.trace("created new managed connection: " + mc);
+        if (trace)
+            log.trace("created new managed connection: " + mc);
 
-      return mc;
-   }
+        return mc;
+    }
 
-   /**
-    * Match a set of connections from the pool
-    */
-   public ManagedConnection matchManagedConnections(Set connectionSet, Subject subject, ConnectionRequestInfo info)
-         throws ResourceException
-   {
-      boolean trace = log.isTraceEnabled();
+    /**
+     * Match a set of connections from the pool
+     */
+    public ManagedConnection matchManagedConnections(Set connectionSet, Subject subject, ConnectionRequestInfo info) throws ResourceException {
+        boolean trace = log.isTraceEnabled();
 
-      // Get cred
-      info = getInfo(info);
-      JmsCred cred = JmsCred.getJmsCred(this, subject, info);
+        // Get cred
+        info = getInfo(info);
+        JmsCred cred = JmsCred.getJmsCred(this, subject, info);
 
-      if (trace)
-         log.trace("Looking for connection matching credentials: " + cred);
+        if (trace)
+            log.trace("Looking for connection matching credentials: " + cred);
 
-      // Traverse the pooled connections and look for a match, return first
-      // found
-      Iterator connections = connectionSet.iterator();
+        // Traverse the pooled connections and look for a match, return first
+        // found
+        Iterator connections = connectionSet.iterator();
 
-      while (connections.hasNext())
-      {
-         Object obj = connections.next();
+        while (connections.hasNext()) {
+            Object obj = connections.next();
 
-         // We only care for connections of our own type
-         if (obj instanceof JmsManagedConnection)
-         {
-            // This is one from the pool
-            JmsManagedConnection mc = (JmsManagedConnection) obj;
+            // We only care for connections of our own type
+            if (obj instanceof JmsManagedConnection) {
+                // This is one from the pool
+                JmsManagedConnection mc = (JmsManagedConnection) obj;
 
-            // Check if we even created this on
-            ManagedConnectionFactory mcf = mc.getManagedConnectionFactory();
+                // Check if we even created this on
+                ManagedConnectionFactory mcf = mc.getManagedConnectionFactory();
 
-            // Only admit a connection if it has the same username as our
-            // asked for creds
+                // Only admit a connection if it has the same username as our
+                // asked for creds
 
-            // FIXME, Here we have a problem, jms connection
-            // may be anonymous, have a user name
+                // FIXME, Here we have a problem, jms connection
+                // may be anonymous, have a user name
 
-            if ((mc.getUserName() == null || (mc.getUserName() != null && mc.getUserName().equals(cred.name)))
-                  && mcf.equals(this))
-            {
-               // Now check if ConnectionInfo equals
-               if (info.equals(mc.getInfo()))
-               {
+                if ((mc.getUserName() == null || (mc.getUserName() != null && mc.getUserName().equals(cred.name)))
+                        && mcf.equals(this)) {
+                    // Now check if ConnectionInfo equals
+                    if (info.equals(mc.getInfo())) {
 
-                  if (trace)
-                     log.trace("Found matching connection: " + mc);
+                        if (trace)
+                            log.trace("Found matching connection: " + mc);
 
-                  return mc;
-               }
+                        return mc;
+                    }
+                }
             }
-         }
-      }
+        }
 
-      if (trace)
-         log.trace("No matching connection was found");
+        if (trace)
+            log.trace("No matching connection was found");
 
-      return null;
-   }
+        return null;
+    }
 
-   public void setLogWriter(PrintWriter out) throws ResourceException
-   {
-   }
+    public void setLogWriter(PrintWriter out) throws ResourceException {
+    }
 
-   public PrintWriter getLogWriter() throws ResourceException
-   {
-      return null;
-   }
+    public PrintWriter getLogWriter() throws ResourceException {
+        return null;
+    }
 
-   /**
-    * Checks for equality ower the configured properties.
-    */
-   public boolean equals(Object obj)
-   {
-      if (obj == null)
-         return false;
-      if (obj instanceof JmsManagedConnectionFactory)
-      {
-         return mcfProperties.equals(((JmsManagedConnectionFactory) obj).getProperties());
-      }
-      else
-      {
-         return false;
-      }
-   }
+    /**
+     * Checks for equality ower the configured properties.
+     */
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        if (obj instanceof JmsManagedConnectionFactory) {
+            return mcfProperties.equals(((JmsManagedConnectionFactory) obj).getProperties());
+        } else {
+            return false;
+        }
+    }
 
-   public int hashCode()
-   {
-      return mcfProperties.hashCode();
-   }
+    public int hashCode() {
+        return mcfProperties.hashCode();
+    }
 
-   // --- Connfiguration API ---
+    // --- Connfiguration API ---
 
-   public void setJndiParameters(String jndiParameters)
-   {
-      mcfProperties.setJndiParameters(jndiParameters);
-   }
+    public void setJndiParameters(String jndiParameters) {
+        mcfProperties.setJndiParameters(jndiParameters);
+    }
 
-   public String getJndiParameters()
-   {
-      return mcfProperties.getJndiParameters();
-   }
+    public String getJndiParameters() {
+        return mcfProperties.getJndiParameters();
+    }
 
-   public void setConnectionFactory(String connectionFactory)
-   {
-      mcfProperties.setConnectionFactory(connectionFactory);
-   }
+    public void setConnectionFactory(String connectionFactory) {
+        mcfProperties.setConnectionFactory(connectionFactory);
+    }
 
-   public String getConnectionFactory()
-   {
-      return mcfProperties.getConnectionFactory();
-   }
+    public String getConnectionFactory() {
+        return mcfProperties.getConnectionFactory();
+    }
 
-   /**
-    * Set userName, null by default.
-    */
-   public void setUserName(String userName)
-   {
-      mcfProperties.setUserName(userName);
-   }
+    /**
+     * Set userName, null by default.
+     */
+    public void setUserName(String userName) {
+        mcfProperties.setUserName(userName);
+    }
 
-   /**
-    * Get userName, may be null.
-    */
-   public String getUserName()
-   {
-      return mcfProperties.getUserName();
-   }
+    /**
+     * Get userName, may be null.
+     */
+    public String getUserName() {
+        return mcfProperties.getUserName();
+    }
 
-   /**
-    * Set password, null by default.
-    */
-   public void setPassword(String password)
-   {
-      mcfProperties.setPassword(password);
-   }
+    /**
+     * Set password, null by default.
+     */
+    public void setPassword(String password) {
+        mcfProperties.setPassword(password);
+    }
 
-   /**
-    * Get password, may be null.
-    */
-   public String getPassword()
-   {
-      return mcfProperties.getPassword();
-   }
+    /**
+     * Get password, may be null.
+     */
+    public String getPassword() {
+        return mcfProperties.getPassword();
+    }
 
-   /**
-    * Get client id, may be null.
-    */
-   public String getClientID()
-   {
-      return mcfProperties.getClientID();
-   }
+    /**
+     * Get client id, may be null.
+     */
+    public String getClientID() {
+        return mcfProperties.getClientID();
+    }
 
-   /**
-    * Set client id, null by default.
-    */
-   public void setClientID(final String clientID)
-   {
-      mcfProperties.setClientID(clientID);
-   }
+    /**
+     * Set client id, null by default.
+     */
+    public void setClientID(final String clientID) {
+        mcfProperties.setClientID(clientID);
+    }
 
-   public Boolean isStrict()
-   {
-      return strict;
-   }
+    public Boolean isStrict() {
+        return strict;
+    }
 
-   public void setStrict(Boolean strict)
-   {
-      this.strict = strict.booleanValue();
-   }
+    public void setStrict(Boolean strict) {
+        this.strict = strict.booleanValue();
+    }
 
-   /**
-    * Set the default session typ
-    * 
-    * @param type either javax.jms.Topic or javax.jms.Queue
-    * 
-    * @exception ResourceException if type was not a valid type.
-    */
-   public void setSessionDefaultType(String type) throws ResourceException
-   {
-      mcfProperties.setSessionDefaultType(type);
-   }
+    /**
+     * Set the default session typ
+     *
+     * @param type either javax.jms.Topic or javax.jms.Queue
+     * @throws ResourceException if type was not a valid type.
+     */
+    public void setSessionDefaultType(String type) throws ResourceException {
+        mcfProperties.setSessionDefaultType(type);
+    }
 
-   public String getSessionDefaultType()
-   {
-      return mcfProperties.getSessionDefaultType();
-   }
-   
-   /**
-    * Get the useTryLock.
-    * 
-    * @return the useTryLock.
-    */
-   public Integer getUseTryLock()
-   {
-      return useTryLock;
-   }
+    public String getSessionDefaultType() {
+        return mcfProperties.getSessionDefaultType();
+    }
 
-   /**
-    * Set the useTryLock.
-    * 
-    * @param useTryLock the useTryLock.
-    */
-   public void setUseTryLock(Integer useTryLock)
-   {
-      this.useTryLock = useTryLock;
-   }
+    /**
+     * Get the useTryLock.
+     *
+     * @return the useTryLock.
+     */
+    public Integer getUseTryLock() {
+        return useTryLock;
+    }
 
-   private ConnectionRequestInfo getInfo(ConnectionRequestInfo info)
-   {
-      if (info == null)
-      {
-         // Create a default one
-         return new JmsConnectionRequestInfo(mcfProperties);
-      }
-      else
-      {
-         // Fill the one with any defaults
-         ((JmsConnectionRequestInfo) info).setDefaults(mcfProperties);
-         return info;
-      }
-   }
+    /**
+     * Set the useTryLock.
+     *
+     * @param useTryLock the useTryLock.
+     */
+    public void setUseTryLock(Integer useTryLock) {
+        this.useTryLock = useTryLock;
+    }
 
-   public ConnectionMetaData getMetaData()
-   {
-      return new JmsConnectionMetaData();
-   }
+    private ConnectionRequestInfo getInfo(ConnectionRequestInfo info) {
+        if (info == null) {
+            // Create a default one
+            return new JmsConnectionRequestInfo(mcfProperties);
+        } else {
+            // Fill the one with any defaults
+            ((JmsConnectionRequestInfo) info).setDefaults(mcfProperties);
+            return info;
+        }
+    }
 
-   //---- MCF to MCF API
+    public ConnectionMetaData getMetaData() {
+        return new JmsConnectionMetaData();
+    }
 
-   protected JmsMCFProperties getProperties()
-   {
-      return mcfProperties;
-   }
+    //---- MCF to MCF API
+
+    protected JmsMCFProperties getProperties() {
+        return mcfProperties;
+    }
 }

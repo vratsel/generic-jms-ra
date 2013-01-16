@@ -29,32 +29,29 @@ import javax.resource.spi.ManagedConnectionMetaData;
  *
  * @author <a href="mailto:peter.antman@tim.se">Peter Antman</a>.
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 71554 $
  */
-public class JmsMetaData
-   implements ManagedConnectionMetaData
-{
-   private JmsManagedConnection mc;
-   
-   public JmsMetaData(final JmsManagedConnection mc) {
-      this.mc = mc;
-   }
-   
-   public String getEISProductName() throws ResourceException {
-      return "JBoss Generic JMS JCA Resource Adapter";
-   }
+public class JmsMetaData implements ManagedConnectionMetaData {
+    private JmsManagedConnection mc;
 
-   public String getEISProductVersion() throws ResourceException {
-      return "0.1";//Is this possible to get another way
-   }
+    public JmsMetaData(final JmsManagedConnection mc) {
+        this.mc = mc;
+    }
 
-   public int getMaxConnections() throws ResourceException {
-      // Dont know how to get this, from Jms, we
-      // set it to unlimited
-      return 0;
-   }
-    
-   public String getUserName() throws ResourceException {
-      return mc.getUserName();
-   }
+    public String getEISProductName() throws ResourceException {
+        return "JBoss Generic JMS JCA Resource Adapter";
+    }
+
+    public String getEISProductVersion() throws ResourceException {
+        return "0.1";//Is this possible to get another way
+    }
+
+    public int getMaxConnections() throws ResourceException {
+        // Dont know how to get this, from Jms, we
+        // set it to unlimited
+        return 0;
+    }
+
+    public String getUserName() throws ResourceException {
+        return mc.getUserName();
+    }
 }

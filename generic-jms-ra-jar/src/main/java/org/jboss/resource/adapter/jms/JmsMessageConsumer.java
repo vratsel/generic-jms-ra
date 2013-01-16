@@ -37,174 +37,151 @@ import org.jboss.logging.Logger;
  * A wrapper for a message consumer
  *
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 71790 $
  */
-public class JmsMessageConsumer implements MessageConsumer
-{
-   private static final Logger log = Logger.getLogger(JmsMessageConsumer.class);
+public class JmsMessageConsumer implements MessageConsumer {
+    private static final Logger log = Logger.getLogger(JmsMessageConsumer.class);
 
-   /** The wrapped message consumer */
-   MessageConsumer consumer;
-   
-   /** The session for this consumer */
-   JmsSession session;
-   
-   /** Whether trace is enabled */
-   private boolean trace = log.isTraceEnabled();
+    /**
+     * The wrapped message consumer
+     */
+    MessageConsumer consumer;
 
-   /**
-    * Create a new wrapper
-    * 
-    * @param consumer the consumer
-    * @param session the session
-    */
-   public JmsMessageConsumer(MessageConsumer consumer, JmsSession session)
-   {
-      this.consumer = consumer;
-      this.session = session;
-      
-      if (trace)
-         log.trace("new JmsMessageConsumer " + this + " consumer=" + consumer + " session=" + session);
-   }
+    /**
+     * The session for this consumer
+     */
+    JmsSession session;
 
-   public void close() throws JMSException
-   {
-      if (trace)
-         log.trace("close " + this);
-      try
-      {
-         closeConsumer();
-      }
-      finally
-      {
-         session.removeConsumer(this);
-      }
-   }
+    /**
+     * Whether trace is enabled
+     */
+    private boolean trace = log.isTraceEnabled();
 
-   void checkState() throws JMSException
-   {
-      session.checkTransactionActive();
-   }
-   
-   public MessageListener getMessageListener() throws JMSException
-   {
-      checkState();
-      session.checkStrict();
-      return consumer.getMessageListener();
-   }
-   
-   public String getMessageSelector() throws JMSException
-   {
-      checkState();
-      return consumer.getMessageSelector();
-   }
-   
-   public Message receive() throws JMSException
-   {
-      session.lock();
-      try
-      {
-         if (trace)
-            log.trace("receive " + this);
-         checkState();
-         Message message = consumer.receive();
-         if (trace)
-            log.trace("received " + this + " result=" + message);
-         if (message == null)
-            return null;
-         else
-            return wrapMessage(message);
-      }
-      finally
-      {
-         session.unlock();
-      }
-   }
+    /**
+     * Create a new wrapper
+     *
+     * @param consumer the consumer
+     * @param session  the session
+     */
+    public JmsMessageConsumer(MessageConsumer consumer, JmsSession session) {
+        this.consumer = consumer;
+        this.session = session;
 
-   public Message receive(long timeout) throws JMSException
-   {
-      session.lock();
-      try
-      {
-         if (trace)
-            log.trace("receive " + this + " timeout=" + timeout);
-         checkState();
-         Message message = consumer.receive(timeout);
-         if (trace)
-            log.trace("received " + this + " result=" + message);
-         if (message == null)
-            return null;
-         else
-            return wrapMessage(message);
-      }
-      finally
-      {
-         session.unlock();
-      }
-   }
+        if (trace)
+            log.trace("new JmsMessageConsumer " + this + " consumer=" + consumer + " session=" + session);
+    }
 
-   public Message receiveNoWait() throws JMSException
-   {
-      session.lock();
-      try
-      {
-         if (trace)
-            log.trace("receiveNoWait " + this);
-         checkState();
-         Message message = consumer.receiveNoWait();
-         if (trace)
-            log.trace("received " + this + " result=" + message);
-         if (message == null)
-            return null;
-         else
-            return wrapMessage(message);
-      }
-      finally
-      {
-         session.unlock();
-      }
-   }
-   
-   public void setMessageListener(MessageListener listener) throws JMSException
-   {
-      session.lock();
-      try
-      {
-         checkState();
-         session.checkStrict();
-         if (listener == null)
-            consumer.setMessageListener(null);
-         else
-            consumer.setMessageListener(wrapMessageListener(listener));
-      }
-      finally
-      {
-         session.unlock();
-      }
-   }
+    public void close() throws JMSException {
+        if (trace)
+            log.trace("close " + this);
+        try {
+            closeConsumer();
+        } finally {
+            session.removeConsumer(this);
+        }
+    }
 
-   void closeConsumer() throws JMSException
-   {
-      consumer.close();
-   }
-   
-   Message wrapMessage(Message message)
-   {
-      if (message instanceof BytesMessage)
-         return new JmsBytesMessage((BytesMessage) message, session);
-      else if (message instanceof MapMessage)
-         return new JmsMapMessage((MapMessage) message, session);
-      else if (message instanceof ObjectMessage)
-         return new JmsObjectMessage((ObjectMessage) message, session);
-      else if (message instanceof StreamMessage)
-         return new JmsStreamMessage((StreamMessage) message, session);
-      else if (message instanceof TextMessage)
-         return new JmsTextMessage((TextMessage) message, session);
-      return new JmsMessage(message, session);
-   }
-   
-   MessageListener wrapMessageListener(MessageListener listener)
-   {
-      return new JmsMessageListener(listener, this);
-   }
+    void checkState() throws JMSException {
+        session.checkTransactionActive();
+    }
+
+    public MessageListener getMessageListener() throws JMSException {
+        checkState();
+        session.checkStrict();
+        return consumer.getMessageListener();
+    }
+
+    public String getMessageSelector() throws JMSException {
+        checkState();
+        return consumer.getMessageSelector();
+    }
+
+    public Message receive() throws JMSException {
+        session.lock();
+        try {
+            if (trace)
+                log.trace("receive " + this);
+            checkState();
+            Message message = consumer.receive();
+            if (trace)
+                log.trace("received " + this + " result=" + message);
+            if (message == null)
+                return null;
+            else
+                return wrapMessage(message);
+        } finally {
+            session.unlock();
+        }
+    }
+
+    public Message receive(long timeout) throws JMSException {
+        session.lock();
+        try {
+            if (trace)
+                log.trace("receive " + this + " timeout=" + timeout);
+            checkState();
+            Message message = consumer.receive(timeout);
+            if (trace)
+                log.trace("received " + this + " result=" + message);
+            if (message == null)
+                return null;
+            else
+                return wrapMessage(message);
+        } finally {
+            session.unlock();
+        }
+    }
+
+    public Message receiveNoWait() throws JMSException {
+        session.lock();
+        try {
+            if (trace)
+                log.trace("receiveNoWait " + this);
+            checkState();
+            Message message = consumer.receiveNoWait();
+            if (trace)
+                log.trace("received " + this + " result=" + message);
+            if (message == null)
+                return null;
+            else
+                return wrapMessage(message);
+        } finally {
+            session.unlock();
+        }
+    }
+
+    public void setMessageListener(MessageListener listener) throws JMSException {
+        session.lock();
+        try {
+            checkState();
+            session.checkStrict();
+            if (listener == null)
+                consumer.setMessageListener(null);
+            else
+                consumer.setMessageListener(wrapMessageListener(listener));
+        } finally {
+            session.unlock();
+        }
+    }
+
+    void closeConsumer() throws JMSException {
+        consumer.close();
+    }
+
+    Message wrapMessage(Message message) {
+        if (message instanceof BytesMessage)
+            return new JmsBytesMessage((BytesMessage) message, session);
+        else if (message instanceof MapMessage)
+            return new JmsMapMessage((MapMessage) message, session);
+        else if (message instanceof ObjectMessage)
+            return new JmsObjectMessage((ObjectMessage) message, session);
+        else if (message instanceof StreamMessage)
+            return new JmsStreamMessage((StreamMessage) message, session);
+        else if (message instanceof TextMessage)
+            return new JmsTextMessage((TextMessage) message, session);
+        return new JmsMessage(message, session);
+    }
+
+    MessageListener wrapMessageListener(MessageListener listener) {
+        return new JmsMessageListener(listener, this);
+    }
 }

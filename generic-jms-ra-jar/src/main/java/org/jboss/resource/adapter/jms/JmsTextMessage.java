@@ -28,28 +28,23 @@ import javax.jms.TextMessage;
  * A wrapper for a message
  *
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version $Revision: 71554 $
  */
-public class JmsTextMessage extends JmsMessage implements TextMessage
-{
-   /**
-    * Create a new wrapper
-    * 
-    * @param message the message
-    * @param session the session
-    */
-   public JmsTextMessage(TextMessage message, JmsSession session)
-   {
-      super(message, session);
-   }
+public class JmsTextMessage extends JmsMessage implements TextMessage {
+    /**
+     * Create a new wrapper
+     *
+     * @param message the message
+     * @param session the session
+     */
+    public JmsTextMessage(TextMessage message, JmsSession session) {
+        super(message, session);
+    }
 
-   public String getText() throws JMSException
-   {
-      return ((TextMessage) message).getText();
-   }
-   
-   public void setText(String string) throws JMSException
-   {
-      ((TextMessage) message).setText(string);
-   }
+    public String getText() throws JMSException {
+        return ((TextMessage) message).getText();
+    }
+
+    public void setText(String string) throws JMSException {
+        ((TextMessage) message).setText(string);
+    }
 }

@@ -28,55 +28,45 @@ import javax.jms.ConnectionMetaData;
 
 /**
  * This class implements javax.jms.ConnectionMetaData
- * 
+ *
  * @author Norbert Lataille (Norbert.Lataille@m4x.org)
  * @author Hiram Chirino (Norbert.Lataille@m4x.org)
  * @author <a href="mailto:adrian@jboss.org">Adrian Brock</a>
- * @version $Revision: 71554 $
  */
-public class JmsConnectionMetaData implements ConnectionMetaData
-{
-   public String getJMSVersion()
-   {
-      return "1.1";
-   }
+public class JmsConnectionMetaData implements ConnectionMetaData {
+    public String getJMSVersion() {
+        return "1.1";
+    }
 
-   public int getJMSMajorVersion()
-   {
-      return 1;
-   }
+    public int getJMSMajorVersion() {
+        return 1;
+    }
 
-   public int getJMSMinorVersion()
-   {
-      return 1;
-   }
+    public int getJMSMinorVersion() {
+        return 1;
+    }
 
-   public String getJMSProviderName()
-   {
-      return "JBoss";
-   }
+    public String getJMSProviderName() {
+        return "JBoss";
+    }
 
-   public String getProviderVersion()
-   {
-      return "5.0";
-   }
+    public String getProviderVersion() {
+        return "5.0";
+    }
 
-   public int getProviderMajorVersion()
-   {
-      return 5;
-   }
+    public int getProviderMajorVersion() {
+        return 5;
+    }
 
-   public int getProviderMinorVersion()
-   {
-      return 0;
-   }
+    public int getProviderMinorVersion() {
+        return 0;
+    }
 
-   public Enumeration getJMSXPropertyNames()
-   {
-      Vector vector = new Vector();
-      vector.add("JMSXGroupID");
-      vector.add("JMSXGroupSeq");
-      vector.add("JMSXDeliveryCount");
-      return vector.elements();
-   }
+    public Enumeration getJMSXPropertyNames() {
+        Vector vector = new Vector();
+        vector.add("JMSXGroupID");
+        vector.add("JMSXGroupSeq");
+        vector.add("JMSXDeliveryCount");
+        return vector.elements();
+    }
 }

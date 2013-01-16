@@ -36,135 +36,124 @@ import org.jboss.logging.Logger;
 
 /**
  * The the connection factory implementation for the JMS RA.
- *
- * <p>
+ * <p/>
+ * <p/>
  * This object will be the QueueConnectionFactory or TopicConnectionFactory
  * which clients will use to create connections.
- * 
- * @author  <a href="mailto:peter.antman@tim.se">Peter Antman</a>.
- * @author  <a href="mailto:jason@planet57.com">Jason Dillon</a>
+ *
+ * @author <a href="mailto:peter.antman@tim.se">Peter Antman</a>.
+ * @author <a href="mailto:jason@planet57.com">Jason Dillon</a>
  * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- * @version <tt>$Revision: 71790 $</tt>
  */
-public class JmsConnectionFactoryImpl 
-   implements JmsConnectionFactory, Referenceable
-{
-   private static final long serialVersionUID = -5135366013101194277L;
+public class JmsConnectionFactoryImpl implements JmsConnectionFactory, Referenceable {
+    private static final long serialVersionUID = -5135366013101194277L;
 
-   private static final Logger log = Logger.getLogger(JmsConnectionFactoryImpl.class);
+    private static final Logger log = Logger.getLogger(JmsConnectionFactoryImpl.class);
 
-   private ManagedConnectionFactory mcf;
+    private ManagedConnectionFactory mcf;
 
-   private ConnectionManager cm;
+    private ConnectionManager cm;
 
-   private Reference reference;
+    private Reference reference;
 
-   public JmsConnectionFactoryImpl(final ManagedConnectionFactory mcf,
-                                   final ConnectionManager cm) 
-   {
-      this.mcf = mcf;
+    public JmsConnectionFactoryImpl(final ManagedConnectionFactory mcf, final ConnectionManager cm) {
+        this.mcf = mcf;
 
-      boolean trace = log.isTraceEnabled();
-      if (cm == null)
-      {
-         // This is standalone usage, no appserver
-         this.cm = new JmsConnectionManager();
-         if (trace)
-            log.trace("Created new connection manager");
-      }
-      else
-         this.cm = cm;
+        boolean trace = log.isTraceEnabled();
+        if (cm == null) {
+            // This is standalone usage, no appserver
+            this.cm = new JmsConnectionManager();
+            if (trace) {
+                log.trace("Created new connection manager");
+            }
+        } else {
+            this.cm = cm;
+        }
 
-      if (trace)
-         log.trace("Using ManagedConnectionFactory=" + mcf + ", ConnectionManager=" + cm);
-   }
+        if (trace) {
+            log.trace("Using ManagedConnectionFactory=" + mcf + ", ConnectionManager=" + cm);
+        }
+    }
 
-   public void setReference(final Reference reference) 
-   {
-      this.reference = reference;
+    public void setReference(final Reference reference) {
+        this.reference = reference;
 
-      if (log.isTraceEnabled())
-         log.trace("Using Reference=" + reference);
-   }
-    
-   public Reference getReference() 
-   {
-      return reference;
-   }
-   
-   // --- QueueConnectionFactory
-   
-   public QueueConnection createQueueConnection() throws JMSException 
-   {
-      QueueConnection qc = new JmsSessionFactoryImpl(mcf, cm, QUEUE);
+        if (log.isTraceEnabled()) {
+            log.trace("Using Reference=" + reference);
+        }
+    }
 
-      if (log.isTraceEnabled())
-         log.trace("Created queue connection: " + qc);
-      
-      return qc;
-   }
-   
-   public QueueConnection createQueueConnection(String userName, String password) 
-      throws JMSException 
-   {
-      JmsSessionFactoryImpl s = new JmsSessionFactoryImpl(mcf, cm, QUEUE);
-      s.setUserName(userName);
-      s.setPassword(password);
+    public Reference getReference() {
+        return reference;
+    }
 
-      if (log.isTraceEnabled())
-         log.trace("Created queue connection: " + s);
-      
-      return s;
-   } 
+    public QueueConnection createQueueConnection() throws JMSException {
+        QueueConnection qc = new JmsSessionFactoryImpl(mcf, cm, QUEUE);
 
-   // --- TopicConnectionFactory
-   
-   public TopicConnection createTopicConnection() throws JMSException 
-   {
-      TopicConnection tc = new JmsSessionFactoryImpl(mcf, cm, TOPIC);
+        if (log.isTraceEnabled()) {
+            log.trace("Created queue connection: " + qc);
+        }
 
-      if (log.isTraceEnabled())
-         log.trace("Created topic connection: " + tc);
+        return qc;
+    }
 
-      return tc;
-   }
-   
-   public TopicConnection createTopicConnection(String userName, String password)
-      throws JMSException 
-   {
-      JmsSessionFactoryImpl s = new JmsSessionFactoryImpl(mcf, cm, TOPIC);
-      s.setUserName(userName);
-      s.setPassword(password);
-      
-      if (log.isTraceEnabled())
-         log.trace("Created topic connection: " + s);
+    public QueueConnection createQueueConnection(String userName, String password) throws JMSException {
+        JmsSessionFactoryImpl s = new JmsSessionFactoryImpl(mcf, cm, QUEUE);
+        s.setUserName(userName);
+        s.setPassword(password);
 
-      return s;
-   }
+        if (log.isTraceEnabled()) {
+            log.trace("Created queue connection: " + s);
+        }
 
-   // --- JMS 1.1
-   
-   public Connection createConnection()
-      throws JMSException 
-   {
-      Connection c = new JmsSessionFactoryImpl(mcf, cm, AGNOSTIC);
+        return s;
+    }
 
-      if (log.isTraceEnabled())
-         log.trace("Created connection: " + c);
+    // --- TopicConnectionFactory
 
-      return c;
-   }
+    public TopicConnection createTopicConnection() throws JMSException {
+        TopicConnection tc = new JmsSessionFactoryImpl(mcf, cm, TOPIC);
 
-   public Connection createConnection(String userName, String password)
-      throws JMSException
-   {
-      JmsSessionFactoryImpl s = new JmsSessionFactoryImpl(mcf, cm, AGNOSTIC);
-      s.setUserName(userName);
-      s.setPassword(password);
-      
-      if (log.isTraceEnabled())
-         log.trace("Created connection: " + s);
+        if (log.isTraceEnabled()) {
+            log.trace("Created topic connection: " + tc);
+        }
 
-      return s;
-   }  
+        return tc;
+    }
+
+    public TopicConnection createTopicConnection(String userName, String password) throws JMSException {
+        JmsSessionFactoryImpl s = new JmsSessionFactoryImpl(mcf, cm, TOPIC);
+        s.setUserName(userName);
+        s.setPassword(password);
+
+        if (log.isTraceEnabled()) {
+            log.trace("Created topic connection: " + s);
+        }
+
+        return s;
+    }
+
+    // --- JMS 1.1
+
+    public Connection createConnection() throws JMSException {
+        Connection c = new JmsSessionFactoryImpl(mcf, cm, AGNOSTIC);
+
+        if (log.isTraceEnabled()) {
+            log.trace("Created connection: " + c);
+        }
+
+        return c;
+    }
+
+    public Connection createConnection(String userName, String password) throws JMSException {
+        JmsSessionFactoryImpl s = new JmsSessionFactoryImpl(mcf, cm, AGNOSTIC);
+        s.setUserName(userName);
+        s.setPassword(password);
+
+        if (log.isTraceEnabled()) {
+            log.trace("Created connection: " + s);
+        }
+
+        return s;
+    }
 }

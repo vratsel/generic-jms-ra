@@ -22,6 +22,13 @@ The project consists of three Maven modules:
 2. Execute 'mvn install' to build the code.
 3. Execute 'mvn -Prelease install' to generate the deployable resource adapter.
 
+Remember, pre-built versions of the resource adapter archive are available in the [downloads section](https://github.com/jbertram/generic-jms-ra/downloads).
+
+## Release Notes
+
+* **1.0.BETA**: The initial release. Basically a raw copy of the generic JMS JCA RA from the old JBoss AS code-base. Minimal code clean-up and refactoring done. The main change was eliminating the dependency on org.jboss.jms.jndi.JMSProviderAdapter.
+* **1.0.RC1**: Code style refactored.  Refactored activation configuration properties to simplify and eliminate legacy code.  Refactored transaction handling so simplify and eliminate legacy code (hacks) where JMS transactions were used alongside JTA transactions to "fake" real XA semantics.
+
 ## Transaction Support
 
 JTA transactions are very commonly used with MDBs since it is easy to treat a JMS message as a unit of work which should be performed atomically.  For example, an MDB might consume a message, update a table in one or more databases, and then send another JMS message.  In this kind of use-case it's extremely common to require all this work be done atomically so that if any individual part fails then the whole unit of work fails which then usually re-delivers the original message or moves it to a DLQ of some kind.

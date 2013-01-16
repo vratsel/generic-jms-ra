@@ -3,7 +3,7 @@
    <name>JBoss Generic JMS RAR POM</name>
    <modelVersion>4.0.0</modelVersion>
    <groupId>org.jboss.genericjms</groupId>
-   <version>1.0.BETA</version>
+   <version>1.0.RC1</version>
 
    <artifactId>generic-jms-rar-pom</artifactId>
    <packaging>pom</packaging>
