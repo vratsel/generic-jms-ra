@@ -20,7 +20,7 @@ FYI - Pre-built versions of the resource adapter archive used to be available in
 
 ## Build instructions
 
-1. Download the source via any of the methods which GitHub provides.
+1. Download the source via any of the methods which GitHub provides (e.g. the [tags](https://github.com/jbertram/generic-jms-ra/tags) page).
 2. Execute 'mvn install' to build the code.
 3. Execute 'mvn -Prelease install' to generate the deployable resource adapter.
 
