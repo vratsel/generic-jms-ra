@@ -14,7 +14,9 @@ The project consists of three Maven modules:
 
 - The parent module
  - The "generic-jms-ra-jar" module to create the library which goes inside the RAR.
- - The "generic-jms-ra-rar" module to create the actual resource adapter archive which is deployed within the Java EE application server (e.g. JBoss AS7).  Pre-built versions of the resource adapter archive are available in the [downloads section](https://github.com/jbertram/generic-jms-ra/downloads).
+ - The "generic-jms-ra-rar" module to create the actual resource adapter archive which is deployed within the Java EE application server (e.g. JBoss AS7).
+
+FYI - Pre-built versions of the resource adapter archive used to be available in the [downloads section](https://github.com/jbertram/generic-jms-ra/downloads), but [GitHub has deprecated this feature](https://github.com/blog/1302-goodbye-uploads).
 
 ## Build instructions
 
@@ -22,12 +24,10 @@ The project consists of three Maven modules:
 2. Execute 'mvn install' to build the code.
 3. Execute 'mvn -Prelease install' to generate the deployable resource adapter.
 
-Remember, pre-built versions of the resource adapter archive are available in the [downloads section](https://github.com/jbertram/generic-jms-ra/downloads).
-
 ## Release Notes
 
 * **1.0.BETA**: The initial release. Basically a raw copy of the generic JMS JCA RA from the old JBoss AS code-base. Minimal code clean-up and refactoring done. The main change was eliminating the dependency on org.jboss.jms.jndi.JMSProviderAdapter.
-* **1.0.RC1**: Code style refactored.  Refactored activation configuration properties to simplify and eliminate legacy code.  Refactored transaction handling so simplify and eliminate legacy code (hacks) where JMS transactions were used alongside JTA transactions to "fake" real XA semantics.
+* **1.0.RC1**: Refactored code style.  Refactored activation configuration properties to simplify and eliminate legacy code.  Refactored transaction handling so simplify and eliminate legacy code (hacks) where JMS transactions were used alongside JTA transactions to "fake" real XA semantics.
 
 ## Transaction Support
 
@@ -106,7 +106,7 @@ The next step is to modify the generic JMS JCA RA to use this module so it has a
 
 Once the proper dependencies have been configured for the RAR, copy it to the "deployments" directory (e.g. &lt;JBOSS_HOME&gt;/standalone/deployments).
 
-### Example AS7 deployment descriptor
+### Example AS7 deployment descriptor for an outbound connector
 
 To create an outbound connection factory, use a deployment descriptor like this in your standalone*.xml.
 
