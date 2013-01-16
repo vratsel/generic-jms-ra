@@ -4,6 +4,10 @@ This project is for the JBoss Generic JMS JCA Resource Adapter.  As the name sug
 
 To be clear, the JBoss Generic JMS JCA Resource Adapter should only be used if the JMS provider with which you are integrating does not have a JCA Resource Adapter of its own.  Most enterprise JMS providers have their own JCA RA, but for whatever reason there are still a few who are lacking this essential integration component.
 
+## Get Help
+
+Any questions, etc. can be posted on the ["JBoss Generic JMS JCA Resource Adapter" Google Group](https://groups.google.com/forum/?fromgroups=#!forum/jboss-generic-jms-ra).
+
 ## Project structure
 
 The project consists of three Maven modules:
@@ -17,6 +21,30 @@ The project consists of three Maven modules:
 1. Download the source via any of the methods which GitHub provides.
 2. Execute 'mvn install' to build the code.
 3. Execute 'mvn -Prelease install' to generate the deployable resource adapter.
+
+## Transaction Support
+
+JTA transactions are very commonly used with MDBs since it is easy to treat a JMS message as a unit of work which should be performed atomically.  For example, an MDB might consume a message, update a table in one or more databases, and then send another JMS message.  In this kind of use-case it's extremely common to require all this work be done atomically so that if any individual part fails then the whole unit of work fails which then usually re-delivers the original message or moves it to a DLQ of some kind.
+
+To enable this behavior an MDB needs to be configured appropriately.  For example, it would need these annotations (**Note**: these are added by default in JBoss AS7 and every other Java EE 6 compliant application server):
+
+    @TransactionManagement(TransactionManagementType.CONTAINER)
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+
+This tells the container to start a JTA transaction when it delivers a message to the MDB's onMessage method.  You can read more about the semantics of these annotations in [this tutorial from Oracle](http://docs.oracle.com/javaee/6/tutorial/doc/bncij.html).
+
+Behind the scenes, the Java EE server and the JCA RA use the JTA API to enlist and handle all the various javax.transaction.xa.XAResource implementations from the resource managers involved in the transaction (e.g. JMS providers, JDBC datasources, etc.).  Section 8 of the JMS 1.1 specification entitled "JMS Application Server Facilities" describes all the interfaces which a JMS provider must implement in order to support this transactional use-case.  However, JMS providers are *not required* to implement these interfaces which means even though you may want this kind of behavior, you are at the mercy of the JMS provider with whom you are integrating.
+
+When the Java EE server activates an MDB endpoint using the "JBoss Generic JMS JCA Resource Adapter" the RA sets up the JMS sessions that will be used for consuming messages.  During the setup of these sessions the RA looks at the implementation of the connection factory object which the MDB is configured to use (via the `connectionFactory` activation configuration property) to see if it implements javax.jms.XAConnectionFactory.  If it does implement javax.jms.XAConnectionFactory then everything will be set up so that the aforementioned transactional use-case is possible.  If it doesn't implement javax.jms.XAConnectionFactory then the aforementioned transactional use-case will not be possible.  Instead you will have to annotate (or otherwise configure) your MDB with something like:
+
+    @TransactionManagement(TransactionManagementType.CONTAINER)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+
+Or perhaps:
+
+    @TransactionManagement(TransactionManagementType.BEAN)
+
+Otherwise an Exception will be thrown and the MDB will not deploy.
 
 ## JBoss AS7 Deployment Notes
 
@@ -204,7 +232,7 @@ This information was provided by a community member as I don't have access to a 
 	    </dependencies>
 	</module>
 
-### Example AS7 deployment descriptor
+### Example AS7 deployment descriptor for an outbound connector
 
 	<subsystem xmlns="urn:jboss:domain:resource-adapters:1.0">
 	    <resource-adapters>
@@ -242,31 +270,27 @@ Notice the "JndiParameters" are Tibco specific.
 ## Activation Configuration Properties
 
 ### Most commonly used activation configuration properties
-* <strong>destination</strong> - the JNDI name of JMS destination from which the MDB will consume messages; this is required
-* <strong>destinationType</strong> - the type of JMS destination from which to consume messages (e.g. javax.jms.Queue or javax.jms.Topic)
+* <strong>destination</strong> - the JNDI name of JMS destination from which the MDB will consume messages; **this is required**
+* <strong>destinationType</strong> - the type of JMS destination from which to consume messages; valid values are "javax.jms.Queue" or "javax.jms.Topic"
 * <strong>jndiParameters</strong> - the JNDI parameters used to perform the lookup of the destination and the connectionFactory; each parameter consists of a "name=value" pair; parameters are separated with a semi-colon (';'); if no parameters are specified then an empty InitialContext will be used (i.e. the lookup will be local)
 * <strong>connectionFactory</strong> - the JNDI name of connection factory which the RA will use to consume the messages; this is normally a connection factory which supports XA; this is required
 
 ### Less commonly used activation configuration properties
 * <strong>messageSelector</strong> - the JMS selector to use when consuming messages; default is null
-* <strong>acknowledgeMode</strong> - the acknowledgement mode used when consuming messages; only pertinent when using bean-managed transactions; value values are "DUPS_OK_ACKNOWLEDGE" and "AUTO_ACKNOWLEDGE"
+* <strong>acknowledgeMode</strong> - the acknowledgement mode used when consuming messages; only applicable when using Bean-Managed transactions; valid values are "DUPS_OK_ACKNOWLEDGE" and "AUTO_ACKNOWLEDGE"; default is "AUTO_ACKNOWLEDGE"; when Container-Managed transactions are used the acknowledgement of the message is performed by the Java EE application server in accordance with the outcome of the MDB's transaction (assuming such a transaction exists)
 * <strong>subscriptionDurability</strong> - the durability of the topic subscription; default is non-durable; the value "Durable" makes the subscription durable, anything else makes it non-durable
 * <strong>clientId</strong> - the client ID to use for a topic subscription
 * <strong>subscriptionName</strong> - the name of the topic subscription
 * <strong>reconnectInterval</strong> - how long to wait between reconnectAttempts; value is measured in seconds; default is 10
 * <strong>reconnectAttempts</strong> - how many times to try to reconnect if the connection to the JMS broker is lost; default is -1 (i.e. infinite attempts)
-* <strong>user</strong> - the name of the user used when connecting to the JMS broker
-* <strong>pass</strong> - the password used when connecting to the JMS broker
-* <strong>minSession</strong> - default is 1
-* <strong>maxSession</strong> - default is 15
+* <strong>user</strong> - the name of the user used when connecting to the JMS provider
+* <strong>pass</strong> - the password used when connecting to the JMS provider
+* <strong>minSession</strong> - the minimum number of JMS sessions to create; default is 1
+* <strong>maxSession</strong> - the maximum number of JMS sessions to create; default is 15
 
 ### Rarely used activation configuration properties
-* <strong>maxMessages</strong> - default is 1
-* <strong>sessionTransacted</strong> - is the underlying JMS session used by the MDB transacted; default is true
-* <strong>redeliverUnspecified</strong> - default is true
-* <strong>transactionTimeout</strong>
-* <strong>isSameRMOverrideValue</strong>
-* <strong>forceClearOnShutdown</strong> - default is false
-* <strong>forceClearOnShutdownInterval</strong> - value is measured in milliseconds; default is 1000
-* <strong>forceClearAttempts</strong> - default is 0
-* <strong>forceTransacted</strong> - default is false
+* <strong>maxMessages</strong> - the value passed to `javax.jms.ConnectionConsumer.createConnectionConsumer(..)`; see section 8.2.4 of the JMS 1.1 specification for further details; default is 1
+* <strong>transactionTimeout</strong> - the value used for the JTA transaction timeout when using Container-Managed transactions; default is 0 (i.e. use the system default timeout)
+* <strong>forceClearOnShutdown</strong> - whether or not to wait for MDB processing to complete before shutting down the internal JMS ServerSession pool; default is false (i.e. wait for MDB processing to complete)
+* <strong>forceClearOnShutdownInterval</strong> - how long to wait between attempts to shutdown the internal JMS ServerSession pool; value is measured in milliseconds; default is 1000
+* <strong>forceClearAttempts</strong> - how many times to attempt shutting down the internal JMS ServerSession pool; default is 0
