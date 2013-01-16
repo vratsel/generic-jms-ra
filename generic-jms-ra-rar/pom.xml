@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jboss.genericjms</groupId>
         <artifactId>generic-jms-ra-pom</artifactId>
-        <version>1.0.RC1</version>
+        <version>1.0.RC2-SNAPSHOT</version>
     </parent>
 
     <artifactId>generic-jms-ra-rar</artifactId>
@@ -16,7 +16,7 @@
         <dependency>
             <groupId>org.jboss.genericjms</groupId>
             <artifactId>generic-jms-ra-jar</artifactId>
-            <version>1.0.RC1</version>
+            <version>1.0.RC2-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
