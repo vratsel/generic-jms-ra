@@ -56,7 +56,7 @@ public class JmsActivationSpec implements ActivationSpec
    private String messageSelector;
 
    /** The acknowledgement mode */
-   private int acknowledgeMode;
+   private int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
 
    /** The subscription durability */
    private boolean subscriptionDurability;
@@ -85,25 +85,16 @@ public class JmsActivationSpec implements ActivationSpec
    /** The maximum number of sessions */
    private int maxSession = 15;
 
-   /** Is the session transacted */
-   private boolean sessionTransacted = true;
-
    //Default to -1 attempts (i.e. infinite)
    private int reconnectAttempts = -1;
-   
-   private boolean redeliverUnspecified = true;
-   
+
    private int transactionTimeout;
-   
-   private Boolean isSameRMOverrideValue;
    
    private boolean forceClearOnShutdown = false;
    
    private long forceClearOnShutdownInterval = 1000;
    
    private int forceClearAttempts = 0;
-   
-   private Boolean forceTransacted = Boolean.FALSE;
 
    private String jndiParameters;
 
@@ -144,12 +135,12 @@ public class JmsActivationSpec implements ActivationSpec
     */
    public String getAcknowledgeMode()
    {
-      if (sessionTransacted)
-         return "Transacted";
-      else if (Session.DUPS_OK_ACKNOWLEDGE == acknowledgeMode)
+      if (Session.DUPS_OK_ACKNOWLEDGE == acknowledgeMode)
          return "Dups-ok-acknowledge";
-      else
+      else if (Session.AUTO_ACKNOWLEDGE == acknowledgeMode)
          return "Auto-acknowledge";
+      else
+         return "unknown";
    }
 
    /**
@@ -161,8 +152,6 @@ public class JmsActivationSpec implements ActivationSpec
          this.acknowledgeMode = Session.DUPS_OK_ACKNOWLEDGE;
       else if ("AUTO_ACKNOWLEDGE".equals(acknowledgeMode) || "Auto-acknowledge".equals(acknowledgeMode))
          this.acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
-      else if ("SESSION_TRANSACTED".equals(acknowledgeMode))
-         this.acknowledgeMode = Session.SESSION_TRANSACTED;
       else
          throw new IllegalArgumentException("Unsupported acknowledgement mode " + acknowledgeMode);
    }
@@ -172,8 +161,6 @@ public class JmsActivationSpec implements ActivationSpec
     */
    public int getAcknowledgeModeInt()
    {
-      if (sessionTransacted)
-         return Session.SESSION_TRANSACTED;
       return acknowledgeMode;
    }
 
@@ -412,30 +399,6 @@ public class JmsActivationSpec implements ActivationSpec
       return maxSession;
    }
 
-   /**
-    * @return the sessionTransacted.
-    */
-   public boolean getSessionTransacted()
-   {
-      return sessionTransacted;
-   }
-
-   /**
-    * @param sessionTransacted The sessionTransacted to set.
-    */
-   public void setSessionTransacted(boolean sessionTransacted)
-   {
-      this.sessionTransacted = sessionTransacted;
-   }
-
-   /**
-    * @return whether the session is transaction
-    */
-   public boolean isSessionTransacted()
-   {
-      return sessionTransacted;
-   }
-
    public ResourceAdapter getResourceAdapter()
    {
       return ra;
@@ -471,9 +434,7 @@ public class JmsActivationSpec implements ActivationSpec
       buffer.append(" destinationType=").append(destinationType);
       if (messageSelector != null)
          buffer.append(" messageSelector=").append(messageSelector);
-      buffer.append(" sessionTransacted=").append(sessionTransacted);
-      if (sessionTransacted == false)
-         buffer.append(" acknowledgeMode=").append(getAcknowledgeMode());
+      buffer.append(" acknowledgeMode=").append(getAcknowledgeMode());
       buffer.append(" subscriptionDurability=").append(subscriptionDurability);
       if (clientId != null)
          buffer.append(" clientID=").append(clientId);
@@ -502,16 +463,6 @@ public class JmsActivationSpec implements ActivationSpec
    {
       this.reconnectAttempts = reconnectAttempts;
    }
-
-   public boolean getRedeliverUnspecified()
-   {
-      return redeliverUnspecified;
-   }
-
-   public void setRedeliverUnspecified(boolean redeliverUnspecified)
-   {
-      this.redeliverUnspecified = redeliverUnspecified;
-   }
    
    public int getTransactionTimeout()
    {
@@ -521,29 +472,6 @@ public class JmsActivationSpec implements ActivationSpec
    public void setTransactionTimeout(int transactionTimeout)
    {
       this.transactionTimeout = transactionTimeout;
-   }
-   
-   public Boolean getIsSameRMOverrideValue()
-   {
-      return isSameRMOverrideValue;
-   }
-
-   public void setIsSameRMOverrideValue(Boolean isSameRMOverrideValue)
-   {
-      this.isSameRMOverrideValue = isSameRMOverrideValue;
-   }
-
-   public Boolean isForceTransacted()
-   {
-      if (forceTransacted != null)
-         return forceTransacted;
-
-      return Boolean.FALSE;
-   }
-
-   public void setForceTransacted(Boolean forceTransacted)
-   {
-      this.forceTransacted = forceTransacted;
    }
 
    public void setJndiParameters(String jndiParameters)

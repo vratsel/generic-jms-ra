@@ -283,7 +283,7 @@ public class JmsActivation implements ExceptionListener
             log.info("Attempting to reconnect " + spec);
             try
             {
-               setup();
+               setupActivation();
                log.info("Reconnected with messaging provider.");
                break;
             }
@@ -335,7 +335,7 @@ public class JmsActivation implements ExceptionListener
     *
     * @throws Exception for any error
     */
-   protected void setup() throws Exception
+   protected void setupActivation() throws Exception
    {
       log.debug("Setting up " + spec);
       Context ctx = convertStringToContext(spec.getJndiParameters());
@@ -617,7 +617,7 @@ public class JmsActivation implements ExceptionListener
       {
          try
          {
-            setup();
+            setupActivation();
          }
          catch (Throwable t)
          {

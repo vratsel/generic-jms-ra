@@ -187,7 +187,6 @@ public class JmsServerSessionPool implements ServerSessionPool
          }
          sessionCount = serverSessions.size();
          clonedSessions = (ArrayList) serverSessions.clone();
-
       }
       
       // Start the sessions
@@ -243,7 +242,6 @@ public class JmsServerSessionPool implements ServerSessionPool
                catch(InterruptedException ignore)
                {
                }
-            
             }
          }
          else
