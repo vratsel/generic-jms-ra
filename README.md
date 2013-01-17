@@ -114,7 +114,7 @@ To create an outbound connection factory, use a deployment descriptor like this 
 	    <resource-adapters>
 	        <resource-adapter>
 	            <archive>
-	                generic-jms-rar.rar
+	                generic-jms-ra-<VERSION>.rar
 	            </archive>
 	            <transaction-support>XATransaction</transaction-support>
 	            <connection-definitions>
@@ -173,7 +173,7 @@ The consumption and production will be done atomically because the underlying co
 	      @ActivationConfigProperty(propertyName = "jndiParameters", propertyValue = "java.naming.factory.initial=org.jnp.interfaces.NamingContextFactory;java.naming.provider.url=JBM_HOST:1099;java.naming.factory.url.pkgs=org.jboss.naming:org.jnp.interfaces"),
 	      @ActivationConfigProperty(propertyName = "connectionFactory", propertyValue = "XAConnectionFactory")
 	})
-	@ResourceAdapter("generic-jms-rar.rar")
+	@ResourceAdapter("generic-jms-ra-<VERSION>.rar")
 	public class ExampleMDB implements MessageListener
 	{
 
@@ -263,9 +263,9 @@ You can set up this kind of dependency for any application that needs to use the
 
 ## Tibco Integration 
 
-This information was provided by a community member as I don't have access to a Tibco instance.  Tibco EMS 5.1 was used in this example, but I imagine the same configuration could be used for other Tibco versions as well.
+This information was provided by community members as I don't have access to a Tibco instance.  I have received module definitions from 2 different versions of Tibco EMS.  I imagine the same configuration could be used for other Tibco versions as well.
 
-### Tibco Module
+### Tibco EMS 5.1 Module
 
 	<?xml version='1.0' encoding='UTF-8'?>
 	<module xmlns="urn:jboss:module:1.1" name="com.tibco.tibjms">
@@ -277,12 +277,25 @@ This information was provided by a community member as I don't have access to a 
 	        <resource-root path="tibjmsadmin.jar"></resource-root>
 	        <resource-root path="tibjmsufo.jar"></resource-root>
 	    </resources>
-	
 	    <dependencies>
-	        <module name="javax.api"></module>
-	        <module name="javax.jms.api"></module>
+	        <module name="javax.api"/>
+	        <module name="javax.jms.api"/>
 	    </dependencies>
 	</module>
+
+### Tibco EMS 6.0 Module
+
+    <?xml version='1.0' encoding='UTF-8'?>
+    <module xmlns="urn:jboss:module:1.1" name="com.tibco.tibjms">
+        <resources>
+            <resource-root path="tibjms.jar"/>
+            <resource-root path="tibcrypt.jar"/>
+        </resources>
+        <dependencies>
+            <module name="javax.api"/>
+            <module name="javax.jms.api"/>
+        </dependencies>
+    </module>
 
 ### Example AS7 deployment descriptor for an outbound connector
 
@@ -290,7 +303,7 @@ This information was provided by a community member as I don't have access to a 
 	    <resource-adapters>
 	        <resource-adapter>
 	            <archive>
-	                generic-jms-rar.rar
+	                generic-jms-ra-<VERSION>.rar
 	            </archive>
 	            <transaction-support>NoTransaction</transaction-support>
 	            <connection-definitions>

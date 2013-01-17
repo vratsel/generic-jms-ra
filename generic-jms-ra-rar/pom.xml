@@ -8,7 +8,7 @@
         <version>1.0.RC2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>generic-jms-ra-rar</artifactId>
+    <artifactId>generic-jms-ra</artifactId>
     <packaging>rar</packaging>
     <name>JBoss Generic JMS RA RAR</name>
 
