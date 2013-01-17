@@ -35,7 +35,7 @@ FYI - Pre-built versions of the resource adapter archive used to be available in
 
 JTA transactions are very commonly used with MDBs since it is easy to treat a JMS message as a unit of work which should be performed atomically.  For example, an MDB might consume a message, update a table in one or more databases, and then send another JMS message.  In this kind of use-case it's extremely common to require all this work be done atomically so that if any individual part fails then the whole unit of work fails which then usually re-delivers the original message or moves it to a DLQ of some kind.
 
-To enable this behavior an MDB needs to be configured appropriately.  For example, it would need these annotations (**Note:** these are added by default in JBoss AS7 and every other Java EE 6 compliant application server):
+To enable this behavior an MDB needs to be configured appropriately.  For example, it would need these annotations ( **Note:** these are added by default in JBoss AS7 and every other Java EE 6 compliant application server):
 
     @TransactionManagement(TransactionManagementType.CONTAINER)
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
