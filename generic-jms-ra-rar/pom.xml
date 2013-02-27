@@ -20,6 +20,14 @@
         </dependency>
     </dependencies>
 
+    <licenses>
+        <license>
+            <name>lgpl</name>
+            <url>http://repository.jboss.org/licenses/lgpl-2.1.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
     <build>
         <plugins>
             <plugin>
