@@ -334,6 +334,75 @@ This information was provided by community members as I don't have access to a T
 
 Notice the "JndiParameters" are Tibco specific.
 
+## SonicMQ Integration
+
+This was provided from the community.
+
+### SonicMQ 8.5.1 Module
+
+    <module xmlns="urn:jboss:module:1.1" name="com.sonic.sonic-esb">
+        <resources>
+            <resource-root path="mfcontext.jar"/>
+            <resource-root path="sonic_ASPI.jar"/>
+            <resource-root path="sonic_Client.jar"/>
+            <resource-root path="sonic_Crypto.jar"/>
+            <resource-root path="sonic_Selector.jar"/>
+            <resource-root path="sonic_XA.jar"/>
+            <resource-root path="sonic_XMessage.jar"/>
+        </resources>
+ 
+        <dependencies>
+            <module name="javax.api"/>
+            <module name="javax.jms.api"/>
+        </dependencies>
+    </module>
+
+### Example AS7 deployment descriptor for an outbound connector
+
+        <subsystem xmlns="urn:jboss:domain:resource-adapters:1.0">
+            <resource-adapters>
+                <resource-adapter>
+                    <archive>
+                        generic-jms-ra-<VERSION>.rar
+                    </archive>
+                    <transaction-support>XATransaction</transaction-support>
+                    <connection-definitions>
+                        <connection-definition class-name="org.jboss.resource.adapter.jms.JmsManagedConnectionFactory" jndi-name="java:/GenericJmsXA" enabled="true" use-java-context="true" pool-name="GenericJmsXA" use-ccm="true">
+                            <config-property name="JndiParameters">
+                                java.naming.factory.initial=com.sonicsw.jndi.mfcontext.MFContextFactory;com.sonicsw.jndi.mfcontext.domain=sonic_d1;java.naming.provider.url=tcp://sonicmq-host1:2506,tcp://sonicmq-host2:2506;java.naming.security.principal=jboss;java.naming.security.credentials=test
+                            </config-property>
+                            <config-property name="ConnectionFactory">
+                                qcf_jbosstest
+                            </config-property>
+                            <xa-pool>
+                                <min-pool-size>0</min-pool-size>
+                                <max-pool-size>10</max-pool-size>
+                                <prefill>false</prefill>
+                                <use-strict-min>false</use-strict-min>
+                                <flush-strategy>FailingConnectionOnly</flush-strategy>
+                                <pad-xid>false</pad-xid>
+                                <wrap-xa-resource>true</wrap-xa-resource>
+                            </xa-pool>
+                            <security>
+                                <application/>
+                            </security>
+                        </connection-definition>
+                    </connection-definitions>
+                </resource-adapter>
+            </resource-adapters>
+        </subsystem>
+
+### Example EJB3 MDB Configuration
+
+    @MessageDriven(activationConfig = {
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "jboss.in"),
+        @ActivationConfigProperty(propertyName = "jndiParameters", propertyValue = "java.naming.factory.initial=com.sonicsw.jndi.mfcontext.MFContextFactory;com.sonicsw.jndi.mfcontext.domain=sonic_d1;java.naming.provider.url=tcp://sonicmq-host1:2506,tcp://sonicmq-host2:2506;java.naming.security.principal=jboss;java.naming.security.credentials=test"),
+        @ActivationConfigProperty(propertyName = "connectionFactory", propertyValue = "qcf_jbosstest"),
+        @ActivationConfigProperty(propertyName = "user", propertyValue = "jboss"),
+        @ActivationConfigProperty(propertyName = "password", propertyValue = "test") })
+    @ResourceAdapter("generic-jms-ra-<VERSION>.rar")
+
 ## Activation Configuration Properties
 
 ### Most commonly used activation configuration properties
