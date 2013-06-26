@@ -351,7 +351,7 @@ Notice the "JndiParameters" are Tibco specific.
 * <strong>reconnectInterval</strong> - how long to wait between reconnectAttempts; value is measured in seconds; default is 10
 * <strong>reconnectAttempts</strong> - how many times to try to reconnect if the connection to the JMS broker is lost; default is -1 (i.e. infinite attempts)
 * <strong>user</strong> - the name of the user used when connecting to the JMS provider
-* <strong>pass</strong> - the password used when connecting to the JMS provider
+* <strong>password</strong> - the password used when connecting to the JMS provider
 * <strong>minSession</strong> - the minimum number of JMS sessions to create; default is 1
 * <strong>maxSession</strong> - the maximum number of JMS sessions to create; default is 15
 
