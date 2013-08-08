@@ -411,18 +411,19 @@ public class JmsActivation implements ExceptionListener {
      */
     protected Connection setupConnection(Context ctx, String user, String pass, String clientID, String connectionFactory) throws Exception {
         log.debug("Attempting to lookup connection factory " + connectionFactory);
-        ConnectionFactory gcf = (ConnectionFactory) lookup(ctx, connectionFactory, ConnectionFactory.class);
-        log.debug("Got connection factory " + gcf + " from " + connectionFactory);
+        Object preliminaryObject = lookup(ctx, connectionFactory, Object.class);
+        log.debug("Got connection factory " + preliminaryObject + " from " + connectionFactory);
         log.debug("Attempting to create connection with user " + user);
         Connection result;
-        if (gcf instanceof XAConnectionFactory && isDeliveryTransacted) {
-            XAConnectionFactory xagcf = (XAConnectionFactory) gcf;
+        if (preliminaryObject instanceof XAConnectionFactory && isDeliveryTransacted) {
+            XAConnectionFactory xagcf = (XAConnectionFactory) preliminaryObject;
             if (user != null) {
                 result = xagcf.createXAConnection(user, pass);
             } else {
                 result = xagcf.createXAConnection();
             }
         } else {
+           ConnectionFactory gcf = (ConnectionFactory) preliminaryObject;
             if (user != null) {
                 result = gcf.createConnection(user, pass);
             } else {
