@@ -28,11 +28,21 @@ import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
+import javax.jms.QueueConnection;
+import javax.jms.QueueConnectionFactory;
 import javax.jms.ResourceAllocationException;
 import javax.jms.Session;
+import javax.jms.TopicConnection;
+import javax.jms.TopicConnectionFactory;
 import javax.jms.XAConnection;
 import javax.jms.XAConnectionFactory;
+import javax.jms.XAQueueConnection;
+import javax.jms.XAQueueConnectionFactory;
+import javax.jms.XAQueueSession;
 import javax.jms.XASession;
+import javax.jms.XATopicConnection;
+import javax.jms.XATopicConnectionFactory;
+import javax.jms.XATopicSession;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.resource.NotSupportedException;
@@ -646,10 +656,27 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
             }
 
             if (con instanceof XAConnection) {
-                xaSession = ((XAConnection) con).createXASession();
-                session = xaSession.getSession();
+                if (mcf.getProperties().getType() == JmsConnectionFactory.AGNOSTIC) {
+                    xaSession = ((XAConnection) con).createXASession();
+                    session = xaSession.getSession();
+                } else if (mcf.getProperties().getType() == JmsConnectionFactory.QUEUE) {
+                    xaSession = ((XAQueueConnection) con).createXAQueueSession();
+                    session = ((XAQueueSession)xaSession).getQueueSession();
+                } else if (mcf.getProperties().getType() == JmsConnectionFactory.TOPIC) {
+                    xaSession = ((XATopicConnection) con).createXATopicSession();
+                    session = ((XATopicSession)xaSession).getTopicSession();
+                }
+
                 xaTransacted = true;
             } else {
+                if (mcf.getProperties().getType() == JmsConnectionFactory.AGNOSTIC) {
+                    session = con.createSession(transacted, ack);
+                } else if (mcf.getProperties().getType() == JmsConnectionFactory.QUEUE) {
+                    session = ((QueueConnection)con).createQueueSession(transacted, ack);
+                } else if (mcf.getProperties().getType() == JmsConnectionFactory.TOPIC) {
+                    session = ((TopicConnection)con).createTopicSession(transacted, ack);
+                }
+
                 session = con.createSession(transacted, ack);
                 if (trace) {
                     log.trace("Using a non-XA Connection.  " +
@@ -679,7 +706,7 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
      * @throws JMSException             Failed to create connection.
      * @throws IllegalArgumentException Factory is null or invalid.
      */
-    public static Connection createConnection(final Object factory, final String username, final String password)
+    public Connection createConnection(final Object factory, final String username, final String password)
             throws JMSException {
         if (factory == null) {
             throw new IllegalArgumentException("factory is null");
@@ -688,26 +715,51 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
         log.debug("using connection factory: " + factory);
         log.debug("using username/password: " + String.valueOf(username) + "/-- not shown --");
 
-        Connection connection;
+        Connection connection = null;
 
         if (factory instanceof XAConnectionFactory) {
             XAConnectionFactory qFactory = (XAConnectionFactory) factory;
+
             if (username != null) {
-                connection = qFactory.createXAConnection(username, password);
+                if (mcf.getProperties().getType() == JmsConnectionFactory.AGNOSTIC) {
+                    connection = qFactory.createXAConnection(username, password);
+                } else if (mcf.getProperties().getType() == JmsConnectionFactory.QUEUE) {
+                    connection = ((XAQueueConnectionFactory)qFactory).createXAQueueConnection(username, password);
+                } else if (mcf.getProperties().getType() == JmsConnectionFactory.TOPIC) {
+                    connection = ((XATopicConnectionFactory)qFactory).createXATopicConnection(username, password);
+                }
             } else {
-                connection = qFactory.createXAConnection();
+               if (mcf.getProperties().getType() == JmsConnectionFactory.AGNOSTIC) {
+                   connection = qFactory.createXAConnection();
+               } else if (mcf.getProperties().getType() == JmsConnectionFactory.QUEUE) {
+                   connection = ((XAQueueConnectionFactory)qFactory).createXAQueueConnection();
+               } else if (mcf.getProperties().getType() == JmsConnectionFactory.TOPIC) {
+                   connection = ((XATopicConnectionFactory)qFactory).createXATopicConnection();
+               }
             }
 
             log.debug("created XAConnection: " + connection);
         } else if (factory instanceof ConnectionFactory) {
             ConnectionFactory qFactory = (ConnectionFactory) factory;
             if (username != null) {
-                connection = qFactory.createConnection(username, password);
+                if (mcf.getProperties().getType() == JmsConnectionFactory.AGNOSTIC) {
+                    connection = qFactory.createConnection(username, password);
+                } else if (mcf.getProperties().getType() == JmsConnectionFactory.QUEUE) {
+                    connection = ((QueueConnectionFactory)qFactory).createQueueConnection(username, password);
+                } else if (mcf.getProperties().getType() == JmsConnectionFactory.TOPIC) {
+                    connection = ((TopicConnectionFactory)qFactory).createTopicConnection(username, password);
+              }
             } else {
-                connection = qFactory.createConnection();
+               if (mcf.getProperties().getType() == JmsConnectionFactory.AGNOSTIC) {
+                   connection = qFactory.createConnection();
+               } else if (mcf.getProperties().getType() == JmsConnectionFactory.QUEUE) {
+                   connection = ((QueueConnectionFactory)qFactory).createQueueConnection();
+               } else if (mcf.getProperties().getType() == JmsConnectionFactory.TOPIC) {
+                   connection = ((TopicConnectionFactory)qFactory).createTopicConnection();
+               }
             }
 
-            log.debug("created Connection: " + connection);
+            log.debug("created " + mcf.getProperties().getSessionDefaultType() + " connection: " + connection);
         } else {
             throw new IllegalArgumentException("factory is invalid");
         }
