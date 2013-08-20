@@ -403,7 +403,7 @@ This was provided from the community.
         @ActivationConfigProperty(propertyName = "password", propertyValue = "test") })
     @ResourceAdapter("generic-jms-ra-<VERSION>.rar")
 
-## Activation Configuration Properties
+## Activation Configuration Properties (for inbound)
 
 ### Most commonly used activation configuration properties
 * <strong>destination</strong> - the JNDI name of JMS destination from which the MDB will consume messages; **this is required**
@@ -430,3 +430,12 @@ This was provided from the community.
 * <strong>forceClearOnShutdown</strong> - whether or not to wait for MDB processing to complete before shutting down the internal JMS ServerSession pool; default is false (i.e. wait for MDB processing to complete)
 * <strong>forceClearOnShutdownInterval</strong> - how long to wait between attempts to shutdown the internal JMS ServerSession pool; value is measured in milliseconds; default is 1000
 * <strong>forceClearAttempts</strong> - how many times to attempt shutting down the internal JMS ServerSession pool; default is 0
+
+## Connection Factory Configuration Properties (for outbound)
+
+* <strong>JndiParameters</strong> - the JNDI parameters used to perform the lookup of the ConnectionFactory (see below); each parameter consists of a "name=value" pair; parameters are separated with a semi-colon (';'); if no parameters are specified then an empty InitialContext will be used (i.e. the lookup will be local)
+* <strong>ConnectionFactory</strong> - the JNDI name of connection factory which the RA will use to send the messages; this is normally a connection factory which supports XA; **this is required**
+* <strong>UserName</strong> - the name of the user used when connecting to the JMS provider
+* <strong>Password</strong> - the password used when connecting to the JMS provider
+* <strong>ClientID</strong> - the client ID to set on the connection (e.g. for a topic subscription)
+* <strong>SessionDefaultType</strong> - set this to match the kind of session your application needs; valid values are "javax.jms.Topic" (set this if you are using `javax.jms.TopicConnection.createTopicSession()`) and "javax.jms.Queue" (set this if you are using `javax.jms.QueueConnection.createQueueSession()`); do not set if you are using `javax.jms.Session.createSession()`
