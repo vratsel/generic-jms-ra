@@ -8,6 +8,20 @@
     <artifactId>generic-jms-ra-pom</artifactId>
     <packaging>pom</packaging>
 
+    <licenses>
+        <license>
+            <name>lgpl</name>
+            <url>http://repository.jboss.org/licenses/lgpl-2.1.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:jms-ra/generic-jms-ra.git</connection>
+        <developerConnection>scm:git:git@github.com:jms-ra/generic-jms-ra.git</developerConnection>
+        <url>https://github.com/jms-ra/generic-jms-ra</url>
+    </scm>
+
     <profiles>
         <profile>
             <id>release</id>
@@ -69,4 +83,21 @@
         <module>generic-jms-ra-jar</module>
         <module>generic-jms-ra-rar</module>
     </modules>
+
+    <repositories>
+        <repository>
+            <id>jboss-public-repository-group</id>
+            <name>JBoss Public Repository Group</name>
+            <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
