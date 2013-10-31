@@ -647,6 +647,9 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
             }
             factory = context.lookup(connectionFactory);
             con = createConnection(factory, user, pwd);
+            if (info.getClientID() != null) {
+                con.setClientID(info.getClientID());
+            }
             con.setExceptionListener(this);
             if (trace) {
                 log.trace("created connection: " + con);
