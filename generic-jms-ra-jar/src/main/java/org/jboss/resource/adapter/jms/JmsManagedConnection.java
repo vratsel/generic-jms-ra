@@ -336,6 +336,14 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
 
             throw new ResourceException("Still active locks for " + this);
         }
+
+        try {
+            if (con.getClientID() != null) {
+                throw new ResourceException("Cleaning up " + this + " bound to clientID = " + con.getClientID());
+            }
+        } catch (JMSException e) {
+            throw new ResourceException("Cleaning up " + this);
+        }
     }
 
     /**
@@ -426,7 +434,7 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
         // so we cache it.
         //
         if (!xaTransacted) {
-            throw new NotSupportedException("Non XA transaction not supported");
+            return null;
         }
 
         if (xaResource == null) {
@@ -639,7 +647,7 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
             Context context = JmsActivation.convertStringToContext(mcf.getJndiParameters());
             Object factory;
             boolean transacted = info.isTransacted();
-            int ack = Session.AUTO_ACKNOWLEDGE;
+            int ack = transacted ? 0 : info.getAcknowledgeMode();
 
             String connectionFactory = mcf.getConnectionFactory();
             if (connectionFactory == null) {
@@ -647,12 +655,15 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
             }
             factory = context.lookup(connectionFactory);
             con = createConnection(factory, user, pwd);
+            if (info.getClientID() != null && !info.getClientID().equals(con.getClientID())) {
+                con.setClientID(info.getClientID());
+            }
             con.setExceptionListener(this);
             if (trace) {
                 log.trace("created connection: " + con);
             }
 
-            if (con instanceof XAConnection) {
+            if (con instanceof XAConnection && transacted) {
                 if (mcf.getProperties().getType() == JmsConnectionFactory.QUEUE) {
                     xaSession = ((XAQueueConnection) con).createXAQueueSession();
                     session = ((XAQueueSession)xaSession).getQueueSession();

@@ -36,6 +36,7 @@ import org.jboss.util.Strings;
 public class JmsConnectionRequestInfo implements ConnectionRequestInfo {
     private String userName;
     private String password;
+    private String clientID;
 
     private boolean transacted = true;
     private int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
@@ -47,6 +48,7 @@ public class JmsConnectionRequestInfo implements ConnectionRequestInfo {
     public JmsConnectionRequestInfo(JmsMCFProperties prop) {
         this.userName = prop.getUserName();
         this.password = prop.getPassword();
+        this.clientID = prop.getClientID();
         this.type = prop.getType();
     }
 
@@ -67,6 +69,8 @@ public class JmsConnectionRequestInfo implements ConnectionRequestInfo {
             userName = prop.getUserName();//May be null there to
         if (password == null)
             password = prop.getPassword();//May be null there to
+        if (clientID == null)
+            clientID = prop.getClientID();//May be null there to
     }
 
     public String getUserName() {
@@ -83,6 +87,14 @@ public class JmsConnectionRequestInfo implements ConnectionRequestInfo {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getClientID() {
+        return clientID;
+    }
+
+    public void setClientID(String clientID) {
+        this.clientID = clientID;
     }
 
     public boolean isTransacted() {
@@ -105,7 +117,8 @@ public class JmsConnectionRequestInfo implements ConnectionRequestInfo {
                     this.acknowledgeMode == you.getAcknowledgeMode() &&
                     this.type == you.getType() &&
                     Strings.compare(userName, you.getUserName()) &&
-                    Strings.compare(password, you.getPassword()));
+                    Strings.compare(password, you.getPassword()) &&
+                    Strings.compare(clientID, you.getClientID()));
         } else {
             return false;
         }
@@ -127,6 +140,8 @@ public class JmsConnectionRequestInfo implements ConnectionRequestInfo {
             hashCode += userName.hashCode();
         if (password != null)
             hashCode += password.hashCode();
+        if (clientID != null)
+            hashCode += clientID.hashCode();
 
         return hashCode;
     }

@@ -262,31 +262,33 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
             }
         }
 
-        synchronized (tempQueues) {
-            for (Iterator i = tempQueues.iterator(); i.hasNext(); ) {
-                TemporaryQueue temp = (TemporaryQueue) i.next();
-                try {
-                    if (trace)
-                        log.trace("Closing temporary queue " + temp + " for " + this);
-                    temp.delete();
-                } catch (Throwable t) {
-                    log.trace("Error deleting temporary queue", t);
+        if (mcf.isDeleteTemporaryDestinations()) {
+            synchronized (tempQueues) {
+                for (Iterator i = tempQueues.iterator(); i.hasNext(); ) {
+                    TemporaryQueue temp = (TemporaryQueue) i.next();
+                    try {
+                        if (trace)
+                            log.trace("Closing temporary queue " + temp + " for " + this);
+                        temp.delete();
+                    } catch (Throwable t) {
+                        log.trace("Error deleting temporary queue", t);
+                    }
+                    i.remove();
                 }
-                i.remove();
             }
-        }
 
-        synchronized (tempTopics) {
-            for (Iterator i = tempTopics.iterator(); i.hasNext(); ) {
-                TemporaryTopic temp = (TemporaryTopic) i.next();
-                try {
-                    if (trace)
-                        log.trace("Closing temporary topic " + temp + " for " + this);
-                    temp.delete();
-                } catch (Throwable t) {
-                    log.trace("Error deleting temporary queue", t);
+            synchronized (tempTopics) {
+                for (Iterator i = tempTopics.iterator(); i.hasNext(); ) {
+                    TemporaryTopic temp = (TemporaryTopic) i.next();
+                    try {
+                        if (trace)
+                            log.trace("Closing temporary topic " + temp + " for " + this);
+                        temp.delete();
+                    } catch (Throwable t) {
+                        log.trace("Error deleting temporary topic", t);
+                    }
+                    i.remove();
                 }
-                i.remove();
             }
         }
     }
@@ -335,6 +337,7 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
                 JmsConnectionRequestInfo info = new JmsConnectionRequestInfo(transacted, acknowledgeMode, sessionType);
                 info.setUserName(userName);
                 info.setPassword(password);
+                info.setClientID(clientID);
                 info.setDefaults(mcf.getProperties());
 
                 if (trace)
