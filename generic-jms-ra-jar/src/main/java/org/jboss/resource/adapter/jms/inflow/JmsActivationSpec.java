@@ -21,10 +21,13 @@
  */
 package org.jboss.resource.adapter.jms.inflow;
 
+import java.util.Properties;
+
 import javax.jms.Destination;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.Topic;
+import javax.naming.Context;
 import javax.resource.ResourceException;
 import javax.resource.spi.ActivationSpec;
 import javax.resource.spi.InvalidPropertyException;
@@ -450,7 +453,14 @@ public class JmsActivationSpec implements ActivationSpec {
         buffer.append(" minSession=").append(minSession);
         buffer.append(" maxSession=").append(maxSession);
         buffer.append(" connectionFactory=").append(connectionFactory);
-        buffer.append(" jndiParameters=").append(jndiParameters);
+
+        if (jndiParameters != null) {
+            Properties properties = JmsActivation.convertStringToProperties(jndiParameters);
+            if(properties.containsKey(Context.SECURITY_CREDENTIALS)) {
+                properties.put(Context.SECURITY_CREDENTIALS, "<not shown>");
+            }
+            buffer.append(" jndiParameters=").append(properties);
+        }
         buffer.append(')');
         return buffer.toString();
     }
