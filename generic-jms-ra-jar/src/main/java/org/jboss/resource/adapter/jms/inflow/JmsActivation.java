@@ -309,12 +309,17 @@ public class JmsActivation implements ExceptionListener {
     }
 
     public static Context convertStringToContext(String jndiParameters) throws NamingException {
-        InitialContext result = null;
-
-        if (jndiParameters == null) {
-            result = new InitialContext();
+        Properties properties = convertStringToProperties(jndiParameters);
+        if (properties.isEmpty()) {
+            return new InitialContext();
         } else {
-            Properties properties = new Properties();
+            return new InitialContext(properties);
+        }
+    }
+
+    static Properties convertStringToProperties(String jndiParameters) {
+        Properties properties = new Properties();
+        if (jndiParameters != null) {
             String[] elements = jndiParameters.split(";");
             for (String element : elements) {
                 String[] nameValue = element.split("=");
@@ -322,11 +327,8 @@ public class JmsActivation implements ExceptionListener {
                     properties.setProperty(nameValue[0], nameValue[1]);
                 }
             }
-
-            result = new InitialContext(properties);
         }
-
-        return result;
+        return properties;
     }
 
     /**
