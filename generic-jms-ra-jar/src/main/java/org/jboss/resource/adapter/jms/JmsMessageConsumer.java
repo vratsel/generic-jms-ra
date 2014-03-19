@@ -80,18 +80,12 @@ public class JmsMessageConsumer implements MessageConsumer {
         }
     }
 
-    void checkState() throws JMSException {
-        session.checkTransactionActive();
-    }
-
     public MessageListener getMessageListener() throws JMSException {
-        checkState();
         session.checkStrict();
         return consumer.getMessageListener();
     }
 
     public String getMessageSelector() throws JMSException {
-        checkState();
         return consumer.getMessageSelector();
     }
 
@@ -100,7 +94,6 @@ public class JmsMessageConsumer implements MessageConsumer {
         try {
             if (trace)
                 log.trace("receive " + this);
-            checkState();
             Message message = consumer.receive();
             if (trace)
                 log.trace("received " + this + " result=" + message);
@@ -118,7 +111,6 @@ public class JmsMessageConsumer implements MessageConsumer {
         try {
             if (trace)
                 log.trace("receive " + this + " timeout=" + timeout);
-            checkState();
             Message message = consumer.receive(timeout);
             if (trace)
                 log.trace("received " + this + " result=" + message);
@@ -136,7 +128,6 @@ public class JmsMessageConsumer implements MessageConsumer {
         try {
             if (trace)
                 log.trace("receiveNoWait " + this);
-            checkState();
             Message message = consumer.receiveNoWait();
             if (trace)
                 log.trace("received " + this + " result=" + message);
@@ -152,7 +143,6 @@ public class JmsMessageConsumer implements MessageConsumer {
     public void setMessageListener(MessageListener listener) throws JMSException {
         session.lock();
         try {
-            checkState();
             session.checkStrict();
             if (listener == null)
                 consumer.setMessageListener(null);

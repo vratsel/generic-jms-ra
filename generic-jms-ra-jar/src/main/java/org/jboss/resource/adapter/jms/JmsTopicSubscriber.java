@@ -42,12 +42,10 @@ public class JmsTopicSubscriber extends JmsMessageConsumer implements TopicSubsc
     }
 
     public boolean getNoLocal() throws JMSException {
-        checkState();
         return ((TopicSubscriber) consumer).getNoLocal();
     }
 
     public Topic getTopic() throws JMSException {
-        checkState();
         return ((TopicSubscriber) consumer).getTopic();
     }
 }
