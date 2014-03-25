@@ -60,7 +60,6 @@ public class JmsQueueSender extends JmsMessageProducer implements QueueSender {
         try {
             if (trace)
                 log.trace("send " + this + " destination=" + destination + " message=" + message + " deliveryMode=" + deliveryMode + " priority=" + priority + " ttl=" + timeToLive);
-            checkState();
             producer.send(destination, message, deliveryMode, priority, timeToLive);
             if (trace)
                 log.trace("sent " + this + " result=" + message);
@@ -74,7 +73,6 @@ public class JmsQueueSender extends JmsMessageProducer implements QueueSender {
         try {
             if (trace)
                 log.trace("send " + this + " destination=" + destination + " message=" + message);
-            checkState();
             producer.send(destination, message);
             if (trace)
                 log.trace("sent " + this + " result=" + message);

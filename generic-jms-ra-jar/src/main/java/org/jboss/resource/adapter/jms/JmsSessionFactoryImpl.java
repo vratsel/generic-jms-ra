@@ -25,10 +25,15 @@ import org.jboss.logging.Logger;
 
 import javax.jms.*;
 import javax.jms.IllegalStateException;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.naming.Reference;
 import javax.resource.Referenceable;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
+import javax.transaction.Status;
+import javax.transaction.TransactionSynchronizationRegistry;
+
 import java.util.HashSet;
 import java.util.Iterator;
 //import org.jboss.resource.connectionmanager.JTATransactionChecker;
@@ -324,6 +329,7 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
     public Session createSession(boolean transacted, int acknowledgeMode)
             throws JMSException {
         checkClosed();
+
         return allocateConnection(transacted, acknowledgeMode, type);
     }
 
@@ -332,8 +338,12 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
             synchronized (sessions) {
                 if (mcf.isStrict() && sessions.isEmpty() == false)
                     throw new IllegalStateException("Only allowed one session per connection. See the J2EE spec, e.g. J2EE1.4 Section 6.6");
-                if (transacted)
+
+                if (isTransactionActive()) {
+                    transacted = true;
                     acknowledgeMode = Session.SESSION_TRANSACTED;
+                }
+
                 JmsConnectionRequestInfo info = new JmsConnectionRequestInfo(transacted, acknowledgeMode, sessionType);
                 info.setUserName(userName);
                 info.setPassword(password);
@@ -375,25 +385,37 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
     protected void checkClosed() throws IllegalStateException {
         if (closed)
             throw new IllegalStateException("The connection is closed");
-        checkTransactionActive();
     }
 
     /**
-     * Check whether a tranasction is active
-     *
-     * @throws IllegalStateException if the transaction is not active, preparing, prepared or committing or for any error in the transaction manager
+     * Check whether a transaction is active
      */
-    protected void checkTransactionActive() throws IllegalStateException {
+    private boolean isTransactionActive() throws IllegalStateException {
         if (cm == null)
             throw new IllegalStateException("No connection manager");
+        InitialContext context = null;
         try {
-//         if (cm instanceof JTATransactionChecker)
-//            ((JTATransactionChecker) cm).checkTransactionActive();
-        } catch (Exception e) {
+            context = new InitialContext();
+            String name = mcf.getTransactionSynchronizationRegistryLookup();
+            if (name == null) {
+                // consider the transaction active if we are not able to look up
+                // the TransactionSynchronizationRegistry
+                return true;
+            }
+            TransactionSynchronizationRegistry registry = (TransactionSynchronizationRegistry) context.lookup(name);
+            return (registry.getTransactionStatus() == Status.STATUS_ACTIVE);
+        } catch (NamingException e) {
             IllegalStateException ex = new IllegalStateException("Transaction not active");
             ex.initCause(e);
             ex.setLinkedException(e);
             throw ex;
+        } finally {
+            if (context != null) {
+                try {
+                    context.close();
+                } catch (NamingException e) {
+                }
+            }
         }
     }
 }

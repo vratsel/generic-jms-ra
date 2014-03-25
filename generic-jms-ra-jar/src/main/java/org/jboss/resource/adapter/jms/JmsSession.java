@@ -148,17 +148,10 @@ public class JmsSession implements Session, QueueSession, TopicSession {
         if (mc == null)
             throw new IllegalStateException("The session is closed");
 
-        checkTransactionActive();
-
         Session session = mc.getSession();
         if (trace)
             log.trace("getSession " + session + " for " + this);
         return session;
-    }
-
-    void checkTransactionActive() throws IllegalStateException {
-        if (sf != null)
-            sf.checkTransactionActive();
     }
 
     // ---- Session API

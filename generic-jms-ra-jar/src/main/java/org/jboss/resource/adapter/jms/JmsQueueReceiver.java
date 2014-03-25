@@ -42,7 +42,6 @@ public class JmsQueueReceiver extends JmsMessageConsumer implements QueueReceive
     }
 
     public Queue getQueue() throws JMSException {
-        checkState();
         return ((QueueReceiver) consumer).getQueue();
     }
 }
