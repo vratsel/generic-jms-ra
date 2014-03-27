@@ -417,7 +417,7 @@ public class JmsActivation implements ExceptionListener {
         log.debug("Got connection factory " + preliminaryObject + " from " + connectionFactory);
         log.debug("Attempting to create connection with user " + user);
         Connection result;
-        if (preliminaryObject instanceof XAConnectionFactory && isDeliveryTransacted) {
+        if (isDeliveryTransacted) {
             XAConnectionFactory xagcf = (XAConnectionFactory) preliminaryObject;
             if (user != null) {
                 result = xagcf.createXAConnection(user, pass);
@@ -425,11 +425,20 @@ public class JmsActivation implements ExceptionListener {
                 result = xagcf.createXAConnection();
             }
         } else {
-           ConnectionFactory gcf = (ConnectionFactory) preliminaryObject;
-            if (user != null) {
-                result = gcf.createConnection(user, pass);
+            if (preliminaryObject instanceof XAConnectionFactory) {
+                XAConnectionFactory xagcf = (XAConnectionFactory) preliminaryObject;
+                if (user != null) {
+                    result = xagcf.createXAConnection(user, pass);
+                } else {
+                    result = xagcf.createXAConnection();
+                }
             } else {
-                result = gcf.createConnection();
+                ConnectionFactory gcf = (ConnectionFactory) preliminaryObject;
+                if (user != null) {
+                    result = gcf.createConnection(user, pass);
+                } else {
+                    result = gcf.createConnection();
+                }
             }
         }
         try {

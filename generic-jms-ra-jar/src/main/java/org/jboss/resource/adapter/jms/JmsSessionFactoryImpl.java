@@ -339,10 +339,8 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
                 if (mcf.isStrict() && sessions.isEmpty() == false)
                     throw new IllegalStateException("Only allowed one session per connection. See the J2EE spec, e.g. J2EE1.4 Section 6.6");
 
-                if (isTransactionActive()) {
-                    transacted = true;
-                    acknowledgeMode = Session.SESSION_TRANSACTED;
-                }
+                transacted = true;
+                acknowledgeMode = Session.SESSION_TRANSACTED;
 
                 JmsConnectionRequestInfo info = new JmsConnectionRequestInfo(transacted, acknowledgeMode, sessionType);
                 info.setUserName(userName);
@@ -385,37 +383,5 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
     protected void checkClosed() throws IllegalStateException {
         if (closed)
             throw new IllegalStateException("The connection is closed");
-    }
-
-    /**
-     * Check whether a transaction is active
-     */
-    private boolean isTransactionActive() throws IllegalStateException {
-        if (cm == null)
-            throw new IllegalStateException("No connection manager");
-        InitialContext context = null;
-        try {
-            context = new InitialContext();
-            String name = mcf.getTransactionSynchronizationRegistryLookup();
-            if (name == null) {
-                // consider the transaction active if we are not able to look up
-                // the TransactionSynchronizationRegistry
-                return true;
-            }
-            TransactionSynchronizationRegistry registry = (TransactionSynchronizationRegistry) context.lookup(name);
-            return (registry.getTransactionStatus() == Status.STATUS_ACTIVE);
-        } catch (NamingException e) {
-            IllegalStateException ex = new IllegalStateException("Transaction not active");
-            ex.initCause(e);
-            ex.setLinkedException(e);
-            throw ex;
-        } finally {
-            if (context != null) {
-                try {
-                    context.close();
-                } catch (NamingException e) {
-                }
-            }
-        }
     }
 }
