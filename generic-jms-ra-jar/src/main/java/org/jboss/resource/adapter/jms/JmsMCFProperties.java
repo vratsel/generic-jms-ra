@@ -46,11 +46,6 @@ public class JmsMCFProperties implements java.io.Serializable {
     String connectionFactory;
     int type = JmsConnectionFactory.AGNOSTIC;
 
-    /**
-     * The JNDI name to lookup the TransactionSynchronizationRegistry
-     */
-    private String transactionSynchronizationRegistryLookup;
-
     public JmsMCFProperties() {
         // empty
     }
@@ -125,14 +120,6 @@ public class JmsMCFProperties implements java.io.Serializable {
 
     public void setJndiParameters(String jndiParameters) {
         this.jndiParameters = jndiParameters;
-    }
-
-    public String getTransactionSynchronizationRegistryLookup() {
-        return transactionSynchronizationRegistryLookup;
-    }
-
-    public void setTransactionSynchronizationRegistryLookup(String transactionSynchronizationRegistryLookup) {
-        this.transactionSynchronizationRegistryLookup = transactionSynchronizationRegistryLookup;
     }
 
     /**

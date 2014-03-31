@@ -300,14 +300,6 @@ public class JmsManagedConnectionFactory implements ManagedConnectionFactory {
         return deleteTemporaryDestinations;
     }
 
-    public void setTransactionSynchronizationRegistryLookup(String transactionSynchronizationRegistryLookup) {
-        mcfProperties.setTransactionSynchronizationRegistryLookup(transactionSynchronizationRegistryLookup);
-    }
-
-    public String getTransactionSynchronizationRegistryLookup() {
-        return mcfProperties.getTransactionSynchronizationRegistryLookup();
-    }
-
     private ConnectionRequestInfo getInfo(ConnectionRequestInfo info) {
         if (info == null) {
             // Create a default one
