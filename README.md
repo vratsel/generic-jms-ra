@@ -18,11 +18,11 @@ The project consists of three Maven modules:
  - The "generic-jms-ra-jar" module to create the library which goes inside the RAR.
  - The "generic-jms-ra-rar" module to create the actual resource adapter archive which is deployed within the Java EE application server (e.g. JBoss AS7).
 
-FYI - Pre-built versions of the resource adapter archive used to be available in the [downloads section](https://github.com/jbertram/generic-jms-ra/downloads), but [GitHub has deprecated this feature](https://github.com/blog/1302-goodbye-uploads).
+FYI - Pre-built versions of the resource adapter archive used to be available in the [downloads section](https://github.com/jms-ra/generic-jms-ra/downloads), but [GitHub has deprecated this feature](https://github.com/blog/1302-goodbye-uploads).
 
 ## Build instructions
 
-1. Download the source via any of the methods which GitHub provides (e.g. the [tags](https://github.com/jbertram/generic-jms-ra/tags) page).
+1. Download the source via any of the methods which GitHub provides (e.g. the [tags](https://github.com/jms-ra/generic-jms-ra/tags) page).
 2. Execute 'mvn install' to build the code.
 3. Execute 'mvn -Prelease install' to generate the deployable resource adapter.
 
