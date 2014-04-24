@@ -21,21 +21,29 @@
  */
 package org.jboss.resource.adapter.jms;
 
-import org.jboss.logging.Logger;
+import java.util.HashSet;
+import java.util.Iterator;
 
-import javax.jms.*;
+import javax.jms.ConnectionConsumer;
+import javax.jms.ConnectionMetaData;
+import javax.jms.Destination;
+import javax.jms.ExceptionListener;
 import javax.jms.IllegalStateException;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import javax.jms.JMSException;
+import javax.jms.Queue;
+import javax.jms.QueueSession;
+import javax.jms.ServerSessionPool;
+import javax.jms.Session;
+import javax.jms.TemporaryQueue;
+import javax.jms.TemporaryTopic;
+import javax.jms.Topic;
+import javax.jms.TopicSession;
 import javax.naming.Reference;
 import javax.resource.Referenceable;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
-import javax.transaction.Status;
-import javax.transaction.TransactionSynchronizationRegistry;
 
-import java.util.HashSet;
-import java.util.Iterator;
+import org.jboss.logging.Logger;
 //import org.jboss.resource.connectionmanager.JTATransactionChecker;
 
 /**
@@ -339,8 +347,9 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
                 if (mcf.isStrict() && sessions.isEmpty() == false)
                     throw new IllegalStateException("Only allowed one session per connection. See the J2EE spec, e.g. J2EE1.4 Section 6.6");
 
-                transacted = true;
-                acknowledgeMode = Session.SESSION_TRANSACTED;
+                if (transacted) {
+                    acknowledgeMode = Session.SESSION_TRANSACTED;
+                }
 
                 JmsConnectionRequestInfo info = new JmsConnectionRequestInfo(transacted, acknowledgeMode, sessionType);
                 info.setUserName(userName);
