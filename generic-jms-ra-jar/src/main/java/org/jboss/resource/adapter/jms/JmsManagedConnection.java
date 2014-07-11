@@ -653,7 +653,13 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
             if (connectionFactory == null) {
                 throw new IllegalStateException("No configured 'connectionFactory'.");
             }
-            factory = context.lookup(connectionFactory);
+            ClassLoader oldTCCL = SecurityActions.getThreadContextClassLoader();
+            try {
+                SecurityActions.setThreadContextClassLoader(JmsManagedConnection.class.getClassLoader());
+                factory = context.lookup(connectionFactory);
+            } finally {
+                SecurityActions.setThreadContextClassLoader(oldTCCL);
+            }
             con = createConnection(factory, user, pwd);
             if (info.getClientID() != null && !info.getClientID().equals(con.getClientID())) {
                 con.setClientID(info.getClientID());
@@ -767,7 +773,7 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
 
             log.debug("created " + mcf.getProperties().getSessionDefaultType() + " connection: " + connection);
         } else {
-            throw new IllegalArgumentException("factory is invalid");
+            throw new IllegalArgumentException("factory is invalid: " + factory);
         }
 
         return connection;

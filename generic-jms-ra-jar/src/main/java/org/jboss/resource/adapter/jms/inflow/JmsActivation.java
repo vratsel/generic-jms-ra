@@ -23,6 +23,7 @@ package org.jboss.resource.adapter.jms.inflow;
 
 import org.jboss.logging.Logger;
 import org.jboss.resource.adapter.jms.JmsResourceAdapter;
+import org.jboss.resource.adapter.jms.SecurityActions;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -172,7 +173,9 @@ public class JmsActivation implements ExceptionListener {
 
     public TransactionManager getTransactionManager() {
         if (tm == null) {
+            ClassLoader oldTCCL = SecurityActions.getThreadContextClassLoader();
             try {
+                SecurityActions.setThreadContextClassLoader(JmsActivation.class.getClassLoader());
                 InitialContext ctx = new InitialContext();
                 tm = (TransactionManager) ctx.lookup(JNDI_NAME);
                 if (log.isTraceEnabled()) {
@@ -180,6 +183,8 @@ public class JmsActivation implements ExceptionListener {
                 }
             } catch (NamingException e) {
                 log.debug("Unable to lookup: " + JNDI_NAME, e);
+            } finally {
+                SecurityActions.setThreadContextClassLoader(oldTCCL);
             }
         }
         return tm;
@@ -310,10 +315,20 @@ public class JmsActivation implements ExceptionListener {
 
     public static Context convertStringToContext(String jndiParameters) throws NamingException {
         Properties properties = convertStringToProperties(jndiParameters);
-        if (properties.isEmpty()) {
-            return new InitialContext();
-        } else {
-            return new InitialContext(properties);
+
+        System.out.println("properties = " + properties);
+        ClassLoader oldTCCL = SecurityActions.getThreadContextClassLoader();
+        try {
+            // Set the TCCL to the JmsActivation class loader
+            // to ensure that the underlying initial context factory can be instantiated
+            SecurityActions.setThreadContextClassLoader(JmsActivation.class.getClassLoader());
+            if (properties.isEmpty()) {
+                return new InitialContext();
+            } else {
+                return new InitialContext(properties);
+            }
+        } finally {
+            SecurityActions.setThreadContextClassLoader(oldTCCL);
         }
     }
 
@@ -543,19 +558,26 @@ public class JmsActivation implements ExceptionListener {
     }
 
     private static Object lookup(Context context, String name, Class clazz) throws Exception {
-        Object result = context.lookup(name);
-        Class objectClass = result.getClass();
-        if (clazz.isAssignableFrom(objectClass) == false) {
-            StringBuffer buffer = new StringBuffer(100);
-            buffer.append("Object at '").append(name);
-            buffer.append("' in context ").append(context.getEnvironment());
-            buffer.append(" is not an instance of ");
-            appendClassInfo(buffer, clazz);
-            buffer.append(" object class is ");
-            appendClassInfo(buffer, result.getClass());
-            throw new ClassCastException(buffer.toString());
+        ClassLoader oldTCCL = SecurityActions.getThreadContextClassLoader();
+
+        try {
+            SecurityActions.setThreadContextClassLoader(JmsActivation.class.getClassLoader());
+            Object result = context.lookup(name);
+            Class objectClass = result.getClass();
+            if (clazz.isAssignableFrom(objectClass) == false) {
+                StringBuffer buffer = new StringBuffer(100);
+                buffer.append("Object at '").append(name);
+                buffer.append("' in context ").append(context.getEnvironment());
+                buffer.append(" is not an instance of ");
+                appendClassInfo(buffer, clazz);
+                buffer.append(" object class is ");
+                appendClassInfo(buffer, result.getClass());
+                throw new ClassCastException(buffer.toString());
+            }
+            return result;
+        } finally {
+            SecurityActions.setThreadContextClassLoader(oldTCCL);
         }
-        return result;
     }
 
     /**
