@@ -298,37 +298,38 @@ public class JmsActivation implements ExceptionListener {
      *
      * @throws Exception for any error
      */
-    protected void setupActivation() throws Exception {
-        log.debug("Setting up " + spec);
-        Context ctx = convertStringToContext(spec.getJndiParameters());
-        log.debug("Using context " + ctx.getEnvironment() + " for " + spec);
-        try {
-            setupDestination(ctx);
-            setupConnection(ctx);
-        } finally {
-            ctx.close();
-        }
-        setupSessionPool();
-
-        log.debug("Setup complete " + this);
-    }
-
-    public static Context convertStringToContext(String jndiParameters) throws NamingException {
-        Properties properties = convertStringToProperties(jndiParameters);
-
-        System.out.println("properties = " + properties);
+    private void setupActivation() throws Exception {
         ClassLoader oldTCCL = SecurityActions.getThreadContextClassLoader();
         try {
             // Set the TCCL to the JmsActivation class loader
             // to ensure that the underlying initial context factory can be instantiated
             SecurityActions.setThreadContextClassLoader(JmsActivation.class.getClassLoader());
-            if (properties.isEmpty()) {
-                return new InitialContext();
-            } else {
-                return new InitialContext(properties);
+
+            log.debug("Setting up " + spec);
+            Context ctx = convertStringToContext(spec.getJndiParameters());
+            log.debug("Using context " + ctx.getEnvironment() + " for " + spec);
+            try {
+                setupDestination(ctx);
+                setupConnection(ctx);
+            } finally {
+                ctx.close();
             }
+            setupSessionPool();
+
+            log.debug("Setup complete " + this);
         } finally {
             SecurityActions.setThreadContextClassLoader(oldTCCL);
+        }
+
+    }
+
+    public static Context convertStringToContext(String jndiParameters) throws NamingException {
+        Properties properties = convertStringToProperties(jndiParameters);
+
+        if (properties.isEmpty()) {
+            return new InitialContext();
+        } else {
+            return new InitialContext(properties);
         }
     }
 
@@ -402,7 +403,7 @@ public class JmsActivation implements ExceptionListener {
      * @param ctx the naming context
      * @throws Exception for any error
      */
-    protected void setupConnection(Context ctx) throws Exception {
+    private void setupConnection(Context ctx) throws Exception {
         log.debug("setup connection " + this);
 
         String user = spec.getUser();
@@ -426,7 +427,7 @@ public class JmsActivation implements ExceptionListener {
      * @return the connection
      * @throws Exception for any error
      */
-    protected Connection setupConnection(Context ctx, String user, String pass, String clientID, String connectionFactory) throws Exception {
+    private Connection setupConnection(Context ctx, String user, String pass, String clientID, String connectionFactory) throws Exception {
         log.debug("Attempting to lookup connection factory " + connectionFactory);
         Object preliminaryObject = lookup(ctx, connectionFactory, Object.class);
         log.debug("Got connection factory " + preliminaryObject + " from " + connectionFactory);
@@ -558,26 +559,19 @@ public class JmsActivation implements ExceptionListener {
     }
 
     private static Object lookup(Context context, String name, Class clazz) throws Exception {
-        ClassLoader oldTCCL = SecurityActions.getThreadContextClassLoader();
-
-        try {
-            SecurityActions.setThreadContextClassLoader(JmsActivation.class.getClassLoader());
-            Object result = context.lookup(name);
-            Class objectClass = result.getClass();
-            if (clazz.isAssignableFrom(objectClass) == false) {
-                StringBuffer buffer = new StringBuffer(100);
-                buffer.append("Object at '").append(name);
-                buffer.append("' in context ").append(context.getEnvironment());
-                buffer.append(" is not an instance of ");
-                appendClassInfo(buffer, clazz);
-                buffer.append(" object class is ");
-                appendClassInfo(buffer, result.getClass());
-                throw new ClassCastException(buffer.toString());
-            }
-            return result;
-        } finally {
-            SecurityActions.setThreadContextClassLoader(oldTCCL);
+        Object result = context.lookup(name);
+        Class objectClass = result.getClass();
+        if (clazz.isAssignableFrom(objectClass) == false) {
+            StringBuffer buffer = new StringBuffer(100);
+            buffer.append("Object at '").append(name);
+            buffer.append("' in context ").append(context.getEnvironment());
+            buffer.append(" is not an instance of ");
+            appendClassInfo(buffer, clazz);
+            buffer.append(" object class is ");
+            appendClassInfo(buffer, result.getClass());
+            throw new ClassCastException(buffer.toString());
         }
+        return result;
     }
 
     /**
