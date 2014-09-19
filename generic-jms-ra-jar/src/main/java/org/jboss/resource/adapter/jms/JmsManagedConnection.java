@@ -642,8 +642,10 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
      */
     private void setup() throws ResourceException {
         boolean trace = log.isTraceEnabled();
-
+        ClassLoader oldTCCL = SecurityActions.getThreadContextClassLoader();
         try {
+            SecurityActions.setThreadContextClassLoader(JmsManagedConnection.class.getClassLoader());
+
             Context context = JmsActivation.convertStringToContext(mcf.getJndiParameters());
             Object factory;
             boolean transacted = info.isTransacted();
@@ -653,13 +655,7 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
             if (connectionFactory == null) {
                 throw new IllegalStateException("No configured 'connectionFactory'.");
             }
-            ClassLoader oldTCCL = SecurityActions.getThreadContextClassLoader();
-            try {
-                SecurityActions.setThreadContextClassLoader(JmsManagedConnection.class.getClassLoader());
-                factory = context.lookup(connectionFactory);
-            } finally {
-                SecurityActions.setThreadContextClassLoader(oldTCCL);
-            }
+            factory = context.lookup(connectionFactory);
             con = createConnection(factory, user, pwd);
             if (info.getClientID() != null && !info.getClientID().equals(con.getClientID())) {
                 con.setClientID(info.getClientID());
@@ -702,7 +698,10 @@ public class JmsManagedConnection implements ManagedConnection, ExceptionListene
             throw new ResourceException("Unable to setup connection", e);
         } catch (JMSException e) {
             throw new ResourceException("Unable to setup connection", e);
+        } finally {
+            SecurityActions.setThreadContextClassLoader(oldTCCL);
         }
+
     }
 
     /**
