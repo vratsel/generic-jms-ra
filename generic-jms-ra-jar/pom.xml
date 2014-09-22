@@ -24,6 +24,12 @@
             <groupId>org.jboss.javaee</groupId>
             <artifactId>jboss-jca-api</artifactId>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss</groupId>
+                    <artifactId>jboss-common-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jboss.spec.javax.jms</groupId>
