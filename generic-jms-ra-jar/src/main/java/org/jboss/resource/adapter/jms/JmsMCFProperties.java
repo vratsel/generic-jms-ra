@@ -25,7 +25,7 @@ import javax.jms.Queue;
 import javax.jms.Topic;
 import javax.resource.ResourceException;
 
-import org.jboss.util.Strings;
+import org.jboss.resource.adapter.jms.util.Strings;
 
 /**
  * The MCF default properties, settable in ra.xml or in deployer.
@@ -147,7 +147,7 @@ public class JmsMCFProperties implements java.io.Serializable {
     }
 
     /**
-     * Test for equality of all attributes.
+     * Test for equality.
      */
     public boolean equals(Object obj) {
         if (obj == null) return false;
