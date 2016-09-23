@@ -141,9 +141,9 @@ public class JmsMCFProperties implements java.io.Serializable {
         if (type == JmsConnectionFactory.AGNOSTIC)
             return "agnostic";
         else if (type == JmsConnectionFactory.QUEUE)
-            return TOPIC_TYPE;
-        else
             return QUEUE_TYPE;
+        else
+            return TOPIC_TYPE;
     }
 
     /**
