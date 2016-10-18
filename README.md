@@ -18,11 +18,11 @@ The project consists of three Maven modules:
  - The "generic-jms-ra-jar" module to create the library which goes inside the RAR.
  - The "generic-jms-ra-rar" module to create the actual resource adapter archive which is deployed within the Java EE application server (e.g. JBoss AS7).
 
-FYI - Pre-built versions of the resource adapter archive used to be available in the [downloads section](https://github.com/jbertram/generic-jms-ra/downloads), but [GitHub has deprecated this feature](https://github.com/blog/1302-goodbye-uploads).
+FYI - Pre-built versions of the resource adapter archive used to be available in the [downloads section](https://github.com/jms-ra/generic-jms-ra/downloads), but [GitHub has deprecated this feature](https://github.com/blog/1302-goodbye-uploads).
 
 ## Build instructions
 
-1. Download the source via any of the methods which GitHub provides (e.g. the [tags](https://github.com/jbertram/generic-jms-ra/tags) page).
+1. Download the source via any of the methods which GitHub provides (e.g. the [tags](https://github.com/jms-ra/generic-jms-ra/tags) page).
 2. Execute 'mvn install' to build the code.
 3. Execute 'mvn -Prelease install' to generate the deployable resource adapter.
 
@@ -334,7 +334,76 @@ This information was provided by community members as I don't have access to a T
 
 Notice the "JndiParameters" are Tibco specific.
 
-## Activation Configuration Properties
+## SonicMQ Integration
+
+This was provided from the community.
+
+### SonicMQ 8.5.1 Module
+
+    <module xmlns="urn:jboss:module:1.1" name="com.sonic.sonic-esb">
+        <resources>
+            <resource-root path="mfcontext.jar"/>
+            <resource-root path="sonic_ASPI.jar"/>
+            <resource-root path="sonic_Client.jar"/>
+            <resource-root path="sonic_Crypto.jar"/>
+            <resource-root path="sonic_Selector.jar"/>
+            <resource-root path="sonic_XA.jar"/>
+            <resource-root path="sonic_XMessage.jar"/>
+        </resources>
+ 
+        <dependencies>
+            <module name="javax.api"/>
+            <module name="javax.jms.api"/>
+        </dependencies>
+    </module>
+
+### Example AS7 deployment descriptor for an outbound connector
+
+        <subsystem xmlns="urn:jboss:domain:resource-adapters:1.0">
+            <resource-adapters>
+                <resource-adapter>
+                    <archive>
+                        generic-jms-ra-<VERSION>.rar
+                    </archive>
+                    <transaction-support>XATransaction</transaction-support>
+                    <connection-definitions>
+                        <connection-definition class-name="org.jboss.resource.adapter.jms.JmsManagedConnectionFactory" jndi-name="java:/GenericJmsXA" enabled="true" use-java-context="true" pool-name="GenericJmsXA" use-ccm="true">
+                            <config-property name="JndiParameters">
+                                java.naming.factory.initial=com.sonicsw.jndi.mfcontext.MFContextFactory;com.sonicsw.jndi.mfcontext.domain=sonic_d1;java.naming.provider.url=tcp://sonicmq-host1:2506,tcp://sonicmq-host2:2506;java.naming.security.principal=jboss;java.naming.security.credentials=test
+                            </config-property>
+                            <config-property name="ConnectionFactory">
+                                qcf_jbosstest
+                            </config-property>
+                            <xa-pool>
+                                <min-pool-size>0</min-pool-size>
+                                <max-pool-size>10</max-pool-size>
+                                <prefill>false</prefill>
+                                <use-strict-min>false</use-strict-min>
+                                <flush-strategy>FailingConnectionOnly</flush-strategy>
+                                <pad-xid>false</pad-xid>
+                                <wrap-xa-resource>true</wrap-xa-resource>
+                            </xa-pool>
+                            <security>
+                                <application/>
+                            </security>
+                        </connection-definition>
+                    </connection-definitions>
+                </resource-adapter>
+            </resource-adapters>
+        </subsystem>
+
+### Example EJB3 MDB Configuration
+
+    @MessageDriven(activationConfig = {
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "jboss.in"),
+        @ActivationConfigProperty(propertyName = "jndiParameters", propertyValue = "java.naming.factory.initial=com.sonicsw.jndi.mfcontext.MFContextFactory;com.sonicsw.jndi.mfcontext.domain=sonic_d1;java.naming.provider.url=tcp://sonicmq-host1:2506,tcp://sonicmq-host2:2506;java.naming.security.principal=jboss;java.naming.security.credentials=test"),
+        @ActivationConfigProperty(propertyName = "connectionFactory", propertyValue = "qcf_jbosstest"),
+        @ActivationConfigProperty(propertyName = "user", propertyValue = "jboss"),
+        @ActivationConfigProperty(propertyName = "password", propertyValue = "test") })
+    @ResourceAdapter("generic-jms-ra-<VERSION>.rar")
+
+## Activation Configuration Properties (for inbound)
 
 ### Most commonly used activation configuration properties
 * <strong>destination</strong> - the JNDI name of JMS destination from which the MDB will consume messages; **this is required**
@@ -351,7 +420,7 @@ Notice the "JndiParameters" are Tibco specific.
 * <strong>reconnectInterval</strong> - how long to wait between reconnectAttempts; value is measured in seconds; default is 10
 * <strong>reconnectAttempts</strong> - how many times to try to reconnect if the connection to the JMS broker is lost; default is -1 (i.e. infinite attempts)
 * <strong>user</strong> - the name of the user used when connecting to the JMS provider
-* <strong>pass</strong> - the password used when connecting to the JMS provider
+* <strong>password</strong> - the password used when connecting to the JMS provider
 * <strong>minSession</strong> - the minimum number of JMS sessions to create; default is 1
 * <strong>maxSession</strong> - the maximum number of JMS sessions to create; default is 15
 
@@ -361,3 +430,12 @@ Notice the "JndiParameters" are Tibco specific.
 * <strong>forceClearOnShutdown</strong> - whether or not to wait for MDB processing to complete before shutting down the internal JMS ServerSession pool; default is false (i.e. wait for MDB processing to complete)
 * <strong>forceClearOnShutdownInterval</strong> - how long to wait between attempts to shutdown the internal JMS ServerSession pool; value is measured in milliseconds; default is 1000
 * <strong>forceClearAttempts</strong> - how many times to attempt shutting down the internal JMS ServerSession pool; default is 0
+
+## Connection Factory Configuration Properties (for outbound)
+
+* <strong>JndiParameters</strong> - the JNDI parameters used to perform the lookup of the ConnectionFactory (see below); each parameter consists of a "name=value" pair; parameters are separated with a semi-colon (';'); if no parameters are specified then an empty InitialContext will be used (i.e. the lookup will be local)
+* <strong>ConnectionFactory</strong> - the JNDI name of connection factory which the RA will use to send the messages; this is normally a connection factory which supports XA; **this is required**
+* <strong>UserName</strong> - the name of the user used when connecting to the JMS provider
+* <strong>Password</strong> - the password used when connecting to the JMS provider
+* <strong>ClientID</strong> - the client ID to set on the connection (e.g. for a topic subscription)
+* <strong>SessionDefaultType</strong> - set this to match the kind of session your application needs; valid values are "javax.jms.Topic" (set this if you are using `javax.jms.TopicConnection.createTopicSession()`) and "javax.jms.Queue" (set this if you are using `javax.jms.QueueConnection.createQueueSession()`); do not set if you are using `javax.jms.Session.createSession()`

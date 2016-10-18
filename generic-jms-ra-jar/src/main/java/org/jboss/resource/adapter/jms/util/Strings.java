@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2006, Red Hat Middleware LLC, and individual contributors
+ * Copyright 2014, Red Hat Middleware LLC, and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -19,33 +19,21 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.resource.adapter.jms;
+package org.jboss.resource.adapter.jms.util;
 
-import javax.jms.JMSException;
-import javax.jms.Topic;
-import javax.jms.TopicSubscriber;
+public class Strings
+{
+    public static boolean compare(final String me, final String you)
+    {
+        // If both null or intern equals
+        if (me == you)
+           return true;
 
-/**
- * A wrapper for a topic subscriber
- *
- * @author <a href="mailto:adrian@jboss.com">Adrian Brock</a>
- */
-public class JmsTopicSubscriber extends JmsMessageConsumer implements TopicSubscriber {
-    /**
-     * Create a new wrapper
-     *
-     * @param consumer the topic subscriber
-     * @param session  the session
-     */
-    public JmsTopicSubscriber(TopicSubscriber consumer, JmsSession session) {
-        super(consumer, session);
-    }
+        // if me null and you are not
+        if (me == null && you != null)
+           return false;
 
-    public boolean getNoLocal() throws JMSException {
-        return ((TopicSubscriber) consumer).getNoLocal();
-    }
-
-    public Topic getTopic() throws JMSException {
-        return ((TopicSubscriber) consumer).getTopic();
+        // me will not be null, test for equality
+        return me.equals(you);
     }
 }

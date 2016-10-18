@@ -25,7 +25,7 @@ import javax.resource.spi.ConnectionRequestInfo;
 
 import javax.jms.Session;
 
-import org.jboss.util.Strings;
+import org.jboss.resource.adapter.jms.util.Strings;
 
 /**
  * Request information used in pooling

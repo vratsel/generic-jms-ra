@@ -23,6 +23,7 @@ package org.jboss.resource.adapter.jms.inflow;
 
 import org.jboss.logging.Logger;
 import org.jboss.resource.adapter.jms.JmsResourceAdapter;
+import org.jboss.resource.adapter.jms.SecurityActions;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -172,7 +173,9 @@ public class JmsActivation implements ExceptionListener {
 
     public TransactionManager getTransactionManager() {
         if (tm == null) {
+            ClassLoader oldTCCL = SecurityActions.getThreadContextClassLoader();
             try {
+                SecurityActions.setThreadContextClassLoader(JmsActivation.class.getClassLoader());
                 InitialContext ctx = new InitialContext();
                 tm = (TransactionManager) ctx.lookup(JNDI_NAME);
                 if (log.isTraceEnabled()) {
@@ -180,6 +183,8 @@ public class JmsActivation implements ExceptionListener {
                 }
             } catch (NamingException e) {
                 log.debug("Unable to lookup: " + JNDI_NAME, e);
+            } finally {
+                SecurityActions.setThreadContextClassLoader(oldTCCL);
             }
         }
         return tm;
@@ -293,28 +298,44 @@ public class JmsActivation implements ExceptionListener {
      *
      * @throws Exception for any error
      */
-    protected void setupActivation() throws Exception {
-        log.debug("Setting up " + spec);
-        Context ctx = convertStringToContext(spec.getJndiParameters());
-        log.debug("Using context " + ctx.getEnvironment() + " for " + spec);
+    private void setupActivation() throws Exception {
+        ClassLoader oldTCCL = SecurityActions.getThreadContextClassLoader();
         try {
-            setupDestination(ctx);
-            setupConnection(ctx);
-        } finally {
-            ctx.close();
-        }
-        setupSessionPool();
+            // Set the TCCL to the JmsActivation class loader
+            // to ensure that the underlying initial context factory can be instantiated
+            SecurityActions.setThreadContextClassLoader(JmsActivation.class.getClassLoader());
 
-        log.debug("Setup complete " + this);
+            log.debug("Setting up " + spec);
+            Context ctx = convertStringToContext(spec.getJndiParameters());
+            log.debug("Using context " + ctx.getEnvironment() + " for " + spec);
+            try {
+                setupDestination(ctx);
+                setupConnection(ctx);
+            } finally {
+                ctx.close();
+            }
+            setupSessionPool();
+
+            log.debug("Setup complete " + this);
+        } finally {
+            SecurityActions.setThreadContextClassLoader(oldTCCL);
+        }
+
     }
 
     public static Context convertStringToContext(String jndiParameters) throws NamingException {
-        InitialContext result = null;
+        Properties properties = convertStringToProperties(jndiParameters);
 
-        if (jndiParameters == null) {
-            result = new InitialContext();
+        if (properties.isEmpty()) {
+            return new InitialContext();
         } else {
-            Properties properties = new Properties();
+            return new InitialContext(properties);
+        }
+    }
+
+    static Properties convertStringToProperties(String jndiParameters) {
+        Properties properties = new Properties();
+        if (jndiParameters != null) {
             String[] elements = jndiParameters.split(";");
             for (String element : elements) {
                 String[] nameValue = element.split("=");
@@ -322,11 +343,8 @@ public class JmsActivation implements ExceptionListener {
                     properties.setProperty(nameValue[0], nameValue[1]);
                 }
             }
-
-            result = new InitialContext(properties);
         }
-
-        return result;
+        return properties;
     }
 
     /**
@@ -385,7 +403,7 @@ public class JmsActivation implements ExceptionListener {
      * @param ctx the naming context
      * @throws Exception for any error
      */
-    protected void setupConnection(Context ctx) throws Exception {
+    private void setupConnection(Context ctx) throws Exception {
         log.debug("setup connection " + this);
 
         String user = spec.getUser();
@@ -409,24 +427,34 @@ public class JmsActivation implements ExceptionListener {
      * @return the connection
      * @throws Exception for any error
      */
-    protected Connection setupConnection(Context ctx, String user, String pass, String clientID, String connectionFactory) throws Exception {
+    private Connection setupConnection(Context ctx, String user, String pass, String clientID, String connectionFactory) throws Exception {
         log.debug("Attempting to lookup connection factory " + connectionFactory);
-        ConnectionFactory gcf = (ConnectionFactory) lookup(ctx, connectionFactory, ConnectionFactory.class);
-        log.debug("Got connection factory " + gcf + " from " + connectionFactory);
+        Object preliminaryObject = lookup(ctx, connectionFactory, Object.class);
+        log.debug("Got connection factory " + preliminaryObject + " from " + connectionFactory);
         log.debug("Attempting to create connection with user " + user);
         Connection result;
-        if (gcf instanceof XAConnectionFactory && isDeliveryTransacted) {
-            XAConnectionFactory xagcf = (XAConnectionFactory) gcf;
+        if (isDeliveryTransacted) {
+            XAConnectionFactory xagcf = (XAConnectionFactory) preliminaryObject;
             if (user != null) {
                 result = xagcf.createXAConnection(user, pass);
             } else {
                 result = xagcf.createXAConnection();
             }
         } else {
-            if (user != null) {
-                result = gcf.createConnection(user, pass);
+            if (preliminaryObject instanceof XAConnectionFactory) {
+                XAConnectionFactory xagcf = (XAConnectionFactory) preliminaryObject;
+                if (user != null) {
+                    result = xagcf.createXAConnection(user, pass);
+                } else {
+                    result = xagcf.createXAConnection();
+                }
             } else {
-                result = gcf.createConnection();
+                ConnectionFactory gcf = (ConnectionFactory) preliminaryObject;
+                if (user != null) {
+                    result = gcf.createConnection(user, pass);
+                } else {
+                    result = gcf.createConnection();
+                }
             }
         }
         try {

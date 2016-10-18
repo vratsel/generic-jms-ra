@@ -62,6 +62,11 @@ public class JmsManagedConnectionFactory implements ManagedConnectionFactory {
      */
     private Integer useTryLock = 60;
 
+    /**
+     * Whether temporary destinations are deleted when a session is closed.
+     */
+    private Boolean deleteTemporaryDestinations = true;
+
     public JmsManagedConnectionFactory() {
         // empty
     }
@@ -287,6 +292,14 @@ public class JmsManagedConnectionFactory implements ManagedConnectionFactory {
         this.useTryLock = useTryLock;
     }
 
+    public void setDeleteTemporaryDestinations(Boolean deleteTemporaryDestinations) {
+        this.deleteTemporaryDestinations = deleteTemporaryDestinations;
+    }
+
+    public Boolean isDeleteTemporaryDestinations() {
+        return deleteTemporaryDestinations;
+    }
+
     private ConnectionRequestInfo getInfo(ConnectionRequestInfo info) {
         if (info == null) {
             // Create a default one
@@ -307,4 +320,5 @@ public class JmsManagedConnectionFactory implements ManagedConnectionFactory {
     protected JmsMCFProperties getProperties() {
         return mcfProperties;
     }
+
 }

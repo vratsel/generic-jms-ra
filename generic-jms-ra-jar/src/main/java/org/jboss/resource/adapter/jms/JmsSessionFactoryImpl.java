@@ -21,16 +21,29 @@
  */
 package org.jboss.resource.adapter.jms;
 
-import org.jboss.logging.Logger;
+import java.util.HashSet;
+import java.util.Iterator;
 
-import javax.jms.*;
+import javax.jms.ConnectionConsumer;
+import javax.jms.ConnectionMetaData;
+import javax.jms.Destination;
+import javax.jms.ExceptionListener;
 import javax.jms.IllegalStateException;
+import javax.jms.JMSException;
+import javax.jms.Queue;
+import javax.jms.QueueSession;
+import javax.jms.ServerSessionPool;
+import javax.jms.Session;
+import javax.jms.TemporaryQueue;
+import javax.jms.TemporaryTopic;
+import javax.jms.Topic;
+import javax.jms.TopicSession;
 import javax.naming.Reference;
 import javax.resource.Referenceable;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
-import java.util.HashSet;
-import java.util.Iterator;
+
+import org.jboss.logging.Logger;
 //import org.jboss.resource.connectionmanager.JTATransactionChecker;
 
 /**
@@ -262,31 +275,33 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
             }
         }
 
-        synchronized (tempQueues) {
-            for (Iterator i = tempQueues.iterator(); i.hasNext(); ) {
-                TemporaryQueue temp = (TemporaryQueue) i.next();
-                try {
-                    if (trace)
-                        log.trace("Closing temporary queue " + temp + " for " + this);
-                    temp.delete();
-                } catch (Throwable t) {
-                    log.trace("Error deleting temporary queue", t);
+        if (mcf.isDeleteTemporaryDestinations()) {
+            synchronized (tempQueues) {
+                for (Iterator i = tempQueues.iterator(); i.hasNext(); ) {
+                    TemporaryQueue temp = (TemporaryQueue) i.next();
+                    try {
+                        if (trace)
+                            log.trace("Closing temporary queue " + temp + " for " + this);
+                        temp.delete();
+                    } catch (Throwable t) {
+                        log.trace("Error deleting temporary queue", t);
+                    }
+                    i.remove();
                 }
-                i.remove();
             }
-        }
 
-        synchronized (tempTopics) {
-            for (Iterator i = tempTopics.iterator(); i.hasNext(); ) {
-                TemporaryTopic temp = (TemporaryTopic) i.next();
-                try {
-                    if (trace)
-                        log.trace("Closing temporary topic " + temp + " for " + this);
-                    temp.delete();
-                } catch (Throwable t) {
-                    log.trace("Error deleting temporary queue", t);
+            synchronized (tempTopics) {
+                for (Iterator i = tempTopics.iterator(); i.hasNext(); ) {
+                    TemporaryTopic temp = (TemporaryTopic) i.next();
+                    try {
+                        if (trace)
+                            log.trace("Closing temporary topic " + temp + " for " + this);
+                        temp.delete();
+                    } catch (Throwable t) {
+                        log.trace("Error deleting temporary topic", t);
+                    }
+                    i.remove();
                 }
-                i.remove();
             }
         }
     }
@@ -322,6 +337,7 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
     public Session createSession(boolean transacted, int acknowledgeMode)
             throws JMSException {
         checkClosed();
+
         return allocateConnection(transacted, acknowledgeMode, type);
     }
 
@@ -330,8 +346,11 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
             synchronized (sessions) {
                 if (mcf.isStrict() && sessions.isEmpty() == false)
                     throw new IllegalStateException("Only allowed one session per connection. See the J2EE spec, e.g. J2EE1.4 Section 6.6");
-                if (transacted)
+
+                if (transacted) {
                     acknowledgeMode = Session.SESSION_TRANSACTED;
+                }
+
                 JmsConnectionRequestInfo info = new JmsConnectionRequestInfo(transacted, acknowledgeMode, sessionType);
                 info.setUserName(userName);
                 info.setPassword(password);
@@ -373,25 +392,5 @@ public class JmsSessionFactoryImpl implements JmsSessionFactory, Referenceable {
     protected void checkClosed() throws IllegalStateException {
         if (closed)
             throw new IllegalStateException("The connection is closed");
-        checkTransactionActive();
-    }
-
-    /**
-     * Check whether a tranasction is active
-     *
-     * @throws IllegalStateException if the transaction is not active, preparing, prepared or committing or for any error in the transaction manager
-     */
-    protected void checkTransactionActive() throws IllegalStateException {
-        if (cm == null)
-            throw new IllegalStateException("No connection manager");
-        try {
-//         if (cm instanceof JTATransactionChecker)
-//            ((JTATransactionChecker) cm).checkTransactionActive();
-        } catch (Exception e) {
-            IllegalStateException ex = new IllegalStateException("Transaction not active");
-            ex.initCause(e);
-            ex.setLinkedException(e);
-            throw ex;
-        }
     }
 }

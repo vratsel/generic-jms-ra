@@ -81,7 +81,6 @@ public class JmsMessageProducer implements MessageProducer {
         try {
             if (trace)
                 log.trace("send " + this + " destination=" + destination + " message=" + message + " deliveryMode=" + deliveryMode + " priority=" + priority + " ttl=" + timeToLive);
-            checkState();
             producer.send(destination, message, deliveryMode, priority, timeToLive);
             if (trace)
                 log.trace("sent " + this + " result=" + message);
@@ -95,7 +94,6 @@ public class JmsMessageProducer implements MessageProducer {
         try {
             if (trace)
                 log.trace("send " + this + " destination=" + destination + " message=" + message);
-            checkState();
             producer.send(destination, message);
             if (trace)
                 log.trace("sent " + this + " result=" + message);
@@ -109,7 +107,6 @@ public class JmsMessageProducer implements MessageProducer {
         try {
             if (trace)
                 log.trace("send " + this + " message=" + message + " deliveryMode=" + deliveryMode + " priority=" + priority + " ttl=" + timeToLive);
-            checkState();
             producer.send(message, deliveryMode, priority, timeToLive);
             if (trace)
                 log.trace("sent " + this + " result=" + message);
@@ -123,7 +120,6 @@ public class JmsMessageProducer implements MessageProducer {
         try {
             if (trace)
                 log.trace("send " + this + " message=" + message);
-            checkState();
             producer.send(message);
             if (trace)
                 log.trace("sent " + this + " result=" + message);
@@ -174,10 +170,6 @@ public class JmsMessageProducer implements MessageProducer {
 
     public void setTimeToLive(long timeToLive) throws JMSException {
         producer.setTimeToLive(timeToLive);
-    }
-
-    void checkState() throws JMSException {
-        session.checkTransactionActive();
     }
 
     void closeProducer() throws JMSException {
